@@ -1,0 +1,100 @@
+<html lang="zh-CN" xmlns:th="http://www.thymeleaf.org">
+<head>
+    <meta charset="UTF-8">
+    <meta http-equiv="X-UA-Compatible" content="IE=edge">
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+    <meta name="description" content="">
+    <meta name="author" content="">
+    <base th:href="@{/}">
+    <link rel="stylesheet" href="bootstrap/css/bootstrap.min.css">
+    <link rel="stylesheet" href="css/font-awesome.min.css">
+    <link rel="stylesheet" href="css/theme.css">
+    <style>
+        #footer {
+            padding: 15px 0;
+            background: #fff;
+            border-top: 1px solid #ddd;
+            text-align: center;
+        }
+    </style>
+</head>
+<body>
+<div th:include="~{common::#top}"></div>
+
+<div class="container theme-showcase" role="main">
+    <div class="page-header">
+        <h1>实名认证 - 申请</h1>
+    </div>
+
+    <ul class="nav nav-tabs" role="tablist">
+        <li role="presentation"><a><span class="badge">1</span> 基本信息</a></li>
+        <li role="presentation" class="active"><a><span class="badge">2</span> 资质文件上传</a></li>
+        <li role="presentation"><a><span class="badge">3</span> 完成</a></li>
+    </ul>
+
+    <form role="form" method="post" style="margin-top:20px;" th:action="@{/user/finsh/approve}">
+        <div class="form-group">
+            <input type="hidden" name="userId" th:value="${session.user.userId}">
+            <input type="hidden" name="userName" th:value="${user.userName}">
+            <input type="hidden" name="auth" th:value="${user.auth}">
+            <input type="hidden" name="phone" th:value="${user.phone}">
+            <input type="hidden" name="card" th:value="${user.card}">
+            <input type="hidden" name="email" th:value="${user.email}">
+            <label for="exampleInputEmail1">手执身份证照片</label>
+            <input type="file" class="form-control" name="version" id="exampleInputEmail1">
+            <img style="display: none" id="showPicture"/>
+            <br>
+            <img src="img/pic.jpg">
+        </div>
+        <button type="button" onclick="history.back()" class="btn btn-default">上一步</button>
+        <button type="submit" class="btn btn-success">提交</button>
+    </form>
+    <hr>
+    <div th:include="~{common::#floor}"></div>
+    <script src="jquery/jquery-2.1.1.min.js"></script>
+    <script src="bootstrap/js/bootstrap.min.js"></script>
+    <script src="script/docs.min.js"></script>
+    <script>
+        $('#myTab a').click(function (e) {
+            e.preventDefault()
+            $(this).tab('show')
+        });
+
+
+        // 在文件上传框的值改变事件响应函数中预览并上传图片
+        $("[name=version]").change(function (event) {
+            var file = event.target.files[0];
+            var url = window.url || window.webkitURL;
+            var path = url.createObjectURL(file);
+            $(this).next().attr("src", path).show();
+            // 将上传的文件封装到FormData对象中
+            var formData = new FormData();
+            formData.append("returnPicture", file);
+            // 发送Ajax请求上传文件
+            $.ajax({
+                "url": "/create/upload/return/picture.json",
+                "type": "post",
+                "data": formData,
+                "contentType": false,
+                "processData": false,
+                "dataType": "json",
+                "success": function (response) {
+                    var result = response.operationResult;
+                    if (result == "FAILED") {
+                        alert(response.message);
+                    }
+                    alert("上传成功！");
+                    // 如果上传成功，则从响应体数据中获取图片的访问路径
+                    var path = response.queryData;
+                    console.log(path)
+
+                },
+                "error": function (response) {
+                    alert(response.status + " " + response.statusText);
+                }
+            });
+
+        });
+    </script>
+</body>
+</html>

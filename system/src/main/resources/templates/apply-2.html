@@ -1,0 +1,63 @@
+<html lang="zh-CN" xmlns:th="http://www.thymeleaf.org">
+<head>
+    <meta charset="UTF-8">
+    <meta http-equiv="X-UA-Compatible" content="IE=edge">
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+    <meta name="description" content="">
+    <meta name="author" content="">
+    <base th:href="@{/}">
+	<link rel="stylesheet" href="bootstrap/css/bootstrap.min.css">
+	<link rel="stylesheet" href="css/font-awesome.min.css">
+	<link rel="stylesheet" href="css/theme.css">
+	<style>
+#footer {
+    padding: 15px 0;
+    background: #fff;
+    border-top: 1px solid #ddd;
+    text-align: center;
+}
+	</style>
+  </head>
+  <body>
+  <div th:include="~{common::#top}"></div>
+
+    <div class="container theme-showcase" role="main">
+      <div class="page-header">
+        <h1>实名认证 - 申请</h1>
+      </div>
+		<ul class="nav nav-tabs" role="tablist">
+		  <li role="presentation" ><a><span class="badge">1</span> 基本信息</a></li>
+		  <li role="presentation" ><a><span class="badge">2</span> 资质文件上传</a></li>
+		  <li role="presentation" class="active"><a><span class="badge">3</span> 完成</a></li>
+		</ul>
+		<form role="form" style="margin-top:20px;">
+            <div class="row clearfix">
+                <div class="col-md-12 column">
+                    <div class="panel panel-default">
+                        <div class="panel-body" style="padding:60px;">
+                            <i class="glyphicon glyphicon-ok" style="color:green;font-size:40px;"></i> <span style="margin-left:20px;">你的实名认证信息已经提交完毕，我们会在3个工作日内对项目进行审核，请耐心等候</span>
+                            <p style="margin-left:60px;">你能在会员中心-我的众筹- 发起的项目中查看</p>
+                        </div>
+                    </div>
+                </div>
+            </div>
+            <div class="panel-footer" style="text-align:center;">
+                <button type="button" class="btn  btn-warning btn-lg"
+                        onclick="window.location.href='/user/to/student/main'">完成
+                </button>
+            </div>
+		</form>
+		<hr>
+    </div> <!-- /container -->
+  <div th:include="~{common::#floor}"></div>
+    <script src="jquery/jquery-2.1.1.min.js"></script>
+    <script src="bootstrap/js/bootstrap.min.js"></script>
+	<script src="script/docs.min.js"></script>
+	<script>
+        $('#myTab a').click(function (e) {
+          e.preventDefault()
+          $(this).tab('show')
+        });        
+	</script>
+  </body>
+</html>

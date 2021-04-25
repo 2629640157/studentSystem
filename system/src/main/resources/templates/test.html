@@ -1,0 +1,250 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta http-equiv="X-UA-Compatible" content="IE=Edge,chrome=1">
+    <meta charset="UTF-8">
+    <title>QQ注册</title>
+    <link rel="stylesheet" type="text/css"
+          href="https://qq-web.cdn-go.cn/zc.qq.com/1c037ba1/v3/css/index-0c5fcb9ebc.css">
+    <link rel="icon" href="https://imgcache.qq.com/qzone/openapi/favicon.ico?t=20130219" type="image/x-icon">
+</head>
+<body data-bind="style:{overflow: is_up_sms() || is_verify() ? 'hidden' : ''}" style="display:none;opacity:0"><a
+        class="logo" href="javascript:void(0)" data-bind="click: home">QQ</a>
+<div class="side" data-bind="style:{backgroundImage:currentSideUrl()}"></div>
+
+<div class="main-wraper">
+    <div class="main" data-bind="style:{height: is_up_sms() || is_verify() ? '100%' : ''}">
+        <div class="form" autocomplete="off" data-bind="visible: !error() && !succ()">
+            <div data-bind="visible: isQQ() || isQQMail() || isMail()">
+                <div class="welcome">欢迎注册QQ</div>
+                <div class="header free-lianghao-entry" data-bind="visible: isChs()"><a href="javascript:void(0)"
+                                                                                        data-bind="click: toLianghao">免费靓号</a>
+                </div>
+                <div class="header">每一天，乐在沟通。</div>
+            </div>
+            <div data-bind="visible: isLianghao()">
+                <div class="welcome">QQ免费靓号</div>
+                <div class="guide"><p class="guide-title">注册指引：</p>
+                    <p class="guide-item">1.注册完成后，<a href="http://im.qq.com/mobileqq/index.shtml?adtag=zclhhd8"
+                                                     target="_blank">登录QQ手机版，完成激活</a></p>
+                    <p class="guide-item">2.一周内未激活帐号，系统将自动回收</p></div>
+                <div class="lianghao-area">精品靓号&nbsp;&nbsp;<span class="lianghao-number"
+                                                                 data-bind="html: lianghao_html"></span>&nbsp;&nbsp;<span
+                        data-bind="text: lianghao_mean" class="lianghao-mean"></span> <a href="javascript:void(0)"
+                                                                                         data-bind="click: changeLianghao"
+                                                                                         class="change-lianghao">换一个</a>
+                </div>
+            </div>
+            <form data-bind="submit: submit" autocomplete="off">
+                <div class="input-area">
+                    <div class="input-flags">
+                        <div class="input-ok" data-bind="visible: nicknameStatus() === 1"></div>
+                    </div>
+                    <label class="input-placeholder" id="nickname-tips" for="nickname"
+                           data-bind="visible: nickname().length == 0">昵称</label>
+                    <div class="input-outer"><input autocomplete="off" type="text" id="nickname" class="nickname"
+                                                    maxlength="24"
+                                                    data-bind="textInput: nickname, event: {blur:checkDirtyNickname,focus:onNicknameFocus}, css:{error: typeof nicknameStatus() == 'string'}"
+                                                    tabindex="3"></div>
+                    <div class="error-tips-wrap" data-bind="css:{slideup:nicknameTips().length === 0}">
+                        <div class="error-tips" data-bind="text: nicknameTips, visible: nicknameTips().length"></div>
+                    </div>
+                </div>
+                <div class="input-area"><label class="input-placeholder" id="password-tips" for="password"
+                                               data-bind="visible: password().length == 0">密码</label>
+                    <div class="input-flags">
+                        <div class="input-ok" data-bind="visible:passwordStatus() === 1"></div>
+                        <div href="javascript:void(0)" class="eye"
+                             data-bind="event:{mousedown:function(){$root.show_password(true)},mouseup:function(){$root.show_password(false)},mouseleave:function(){$root.show_password(false)}},visible:password().length > 0,css:{close:!show_password()}"
+                             title="长按显示密码"></div>
+                    </div>
+                    <div class="input-outer">
+                        <div class="password-raw" data-bind="text: password, visible: show_password()"></div>
+                        <input autocomplete="off" type="password" id="password" class="password" maxlength="16"
+                               data-bind="textInput: password, event: {blur:checkPassword,focus:onPasswordFocus}, css:{error:typeof passwordStatus() === 'string'}, hasFocus:passwordFocus"
+                               tabindex="4"></div>
+                    <div class="password-tips-group" data-bind="css:{slideup:!passwordFocus()}">
+                        <div class="password-tips" data-bind="css:{ok:!passwordHasBlank()}">不能包括空格</div>
+                        <div class="password-tips" data-bind="css:{ok:!passwordBadLength()}">长度为8-16个字符</div>
+                        <div class="password-tips" data-bind="css:{ok:!passwordSimple()}">必须包含字母、数字、符号中至少2种</div>
+                    </div>
+                    <div class="error-tips-wrap" data-bind="css:{slideup:passwordTips().length === 0}">
+                        <div class="error-tips" data-bind="text: passwordTips, visible: passwordTips().length"></div>
+                    </div>
+                </div>
+                <div style="position:relative">
+                    <div class="input-area phone-area">
+                        <div class="input-flags">
+                            <div class="input-ok" data-bind="visible: phoneStatus() === 1"></div>
+                        </div>
+                        <label class="input-placeholder" id="phone-tips" for="phone"
+                               data-bind="visible: phone().length == 0">手机号码</label>
+                        <div class="input-outer"><input autocomplete="off" id="phone" type="text" class="phone"
+                                                        data-bind="value: phone, valueUpdate: 'afterkeydown', event:{blur:checkPhone,focus:onPhoneFocus}, validateValue: phone, css:{error:typeof phoneStatus() === 'string'}, hasFocus:phoneFocus"
+                                                        tabindex="5"></div>
+                    </div>
+                    <div class="input-area nation-area">
+                        <div class="input-outer"><input autocomplete="off" type="text" class="nation"
+                                                        data-bind="event:{focus:beginSelectCountry}, textInput: country">
+                            <div class="selector" data-bind="click:togglerCountry, clickBubble: false"><img
+                                    src="https://qq-web.cdn-go.cn/zc.qq.com/1c037ba1/v3/img/down.png"
+                                    data-bind="visible: !isSelectingCountry()"><img
+                                    src="https://qq-web.cdn-go.cn/zc.qq.com/1c037ba1/v3/img/up.png"
+                                    data-bind="visible: isSelectingCountry()"></div>
+                        </div>
+                    </div>
+                    <ul class="options country" data-bind="visible: isSelectingCountry(), foreach: country_list">
+                        <li data-bind="click:function(){$root.setCountry($data.c)}"><a href="javascript:void(0)"
+                                                                                       data-bind="text:$data.n + ' +' + $data.c"></a>
+                        </li>
+                    </ul>
+                </div>
+                <div class="error-tips-wrap" data-bind="css:{slideup: phoneTips().length === 0}">
+                    <div class="error-tips" data-bind="text: phoneTips, visible: phoneTips().length"
+                         style="margin:0"></div>
+                </div>
+                <div class="input-tips-wrap" data-bind="css:{slideup: phoneTips().length > 0}">
+                    <div class="input-tips" data-bind="">可通过该手机号找回密码</div>
+                </div>
+                <div data-bind="visible: phoneStatus() !== 0 || phoneFocus() || sendSMSHover()"><a
+                        href="javascript:void(0)" id="send-sms" class="send-sms"
+                        data-bind="text: send_sms, click: sendSMS, css: {disabled: send_sms() != str().send_sms || typeof phoneStatus() === 'string'}, hasHover: sendSMSHover"
+                        tabindex="6"></a>
+                    <div class="input-area code-area"><label class="input-placeholder" id="code-tips" for="code"
+                                                             data-bind="visible: code().length == 0">短信验证码</label>
+                        <div class="input-outer"><input autocomplete="off" id="code" type="text" class="code"
+                                                        data-bind="textInput: code,event:{focus:clearCode}"
+                                                        tabindex="7"></div>
+                    </div>
+                    <div class="error-tips-wrap" data-bind="css:{slideup:codeTips().length === 0}">
+                        <div class="error-tips" data-bind="text: codeTips, visible: codeTips().length"></div>
+                    </div>
+                </div>
+                <div><input id="get_acc" type="submit" class="submit" value="立即注册" tabindex="8">
+                    <div class="error-tips-wrap" data-bind="css:{slideup:getNumTips().length === 0}">
+                        <div class="error-tips" data-bind="text: getNumTips, visible: getNumTips().length"></div>
+                    </div>
+                </div>
+                <div class="agreement"><input type="checkbox" name="agree" id="agree" data-bind="checked: agree"><label
+                        for="agree" class="checkbox"><img
+                        src="https://qq-web.cdn-go.cn/zc.qq.com/1c037ba1/v3/img/checkbox_check.png"
+                        srcset="https://qq-web.cdn-go.cn/zc.qq.com/1c037ba1/v3/img/checkbox_check@2x.png 2x"
+                        data-bind="visible: agree()"><img
+                        src="https://qq-web.cdn-go.cn/zc.qq.com/1c037ba1/v3/img/checkbox_normal.png"
+                        srcset="https://qq-web.cdn-go.cn/zc.qq.com/1c037ba1/v3/img/checkbox_normal@2x.png 2x"
+                        data-bind="visible: !agree()">&nbsp;我已阅读并同意相关服务条款和隐私政策</label>&nbsp; <img
+                        src="https://qq-web.cdn-go.cn/zc.qq.com/1c037ba1/v3/img/up.png"
+                        data-bind="click: switchAgreement, visible: agreementOpened()"> <img
+                        src="https://qq-web.cdn-go.cn/zc.qq.com/1c037ba1/v3/img/down.png"
+                        data-bind="click: switchAgreement, visible: !agreementOpened()">
+                    <div class="agreement-list"
+                         data-bind="style:{visibility:agreementOpened()?'visible':'hidden',opacity:agreementOpened()?'1':'0'}">
+                        <a href="/chs/agreement1_chs.html" target="_blank">《QQ号码规则》</a> <a
+                            href="http://www.qq.com/privacy.htm" target="_blank">《隐私政策》</a> <a
+                            href="http://qzone.qq.com/web/tk.html"
+                            data-bind="style: {visibility: qzone()&&agreementOpened()?'visible':'hidden'}"
+                            target="_blank">《QQ空间服务协议》</a></div>
+                </div>
+            </form>
+        </div>
+        <div class="lianghao-rule" data-bind="visible: !error() && !succ() && isLianghao()"><p class="rule-title">
+            活动规则</p>
+            <p class="rule">1. 激活规则：获取的“靓号”，登录<a target="_blank" class="color-link"
+                                                 href="http://im.qq.com/mobileqq/index.shtml?adtag=zclhhdgz">QQ手机版</a>（ios或安卓平台）即可自动激活，激活后方可使用其他产品。
+            </p>
+            <p class="rule">2. 回收规则：</p>
+            <p class="rule">（1）免费注册获取的“靓号”，需在一周内完成激活，否则系统将自动回收。</p>
+            <p class="rule">（2）获取的“靓号”遵循现有的QQ帐号回收规则。</p>
+            <p class="rule">3. 手机短信验证：</p>
+            <p class="rule">（1）为防止恶意注册，注册过程需验证手机号码，且1个手机号码仅支持注册1个靓号。</p>
+            <p class="rule">（2）手机号码仅做身份验证，与注册的“靓号”不存在捆绑关系，且不用于其他功能。</p>
+            <p class="rule">4. 每天活动参与人数上限：1,000,000</p>
+            <p class="rule">注：本次活动申请的精品靓号为免费使用，不同于QQ会员付费靓号，故不享受QQ会员靓号的相关特性。<a
+                    href="http://kf.qq.com/faq/141017uiEVRB1410202Ij2Ir.html" target="_blank">更多常见问题</a>。</p></div>
+        <div class="succ" data-bind="visible: !error() && succ()">
+            <div data-bind="visible: !active()">
+                <div class="succ-logo"></div>
+                <div class="reg-succ">注册成功</div>
+                <div>
+                    <div class="qq-number"><span data-bind="text: qq"></span><a href="javascript:void(0)"
+                                                                                class="download-number" alt="保存号码到电脑"
+                                                                                title="点击将QQ号码保持到本地"
+                                                                                data-bind="click: download"><img
+                            src="https://qq-web.cdn-go.cn/zc.qq.com/1c037ba1/v3/img/download.png"
+                            srcset="https://qq-web.cdn-go.cn/zc.qq.com/1c037ba1/v3/img/download@2x.png 2x"></a></div>
+                    <div class="lianghao" data-bind="visible: isLianghao()">请登录QQ手机版，完成号码激活！</div>
+                    <div class="phone-tips" data-bind="text: phone_tips, visible: phone().length"></div>
+                    <div class="warning" data-bind="visible: !isLianghao()">三天内未登录，该号码将会被收回。</div>
+                    <div class="warning" data-bind="visible: isLianghao()">一周内未激活，该号码将会被收回</div>
+                    <button class="login" data-bind="visible: !isLianghao(), click: startClient">立即登录</button>
+                    <div class="download-qq-outer" data-bind="visible: isLianghao()">
+                        <div><img src="https://qq-web.cdn-go.cn/zc.qq.com/1c037ba1/v3/img/qq_qr.png"></div>
+                        <div class="qq">QQ手机版&nbsp;<a class="download-qq">立即下载</a></div>
+                    </div>
+                </div>
+                <div class="other-number" data-bind="visible: friends().length > 0">
+                    <div class="tips">点击添加新号码为常用号码好友</div>
+                    <div class="friend-list" data-bind="foreach: friends"><a title="点击发送好友请求"
+                                                                             data-bind="click: function(){$root.addFriend($data.qq);}"><img
+                            class="avatar" data-bind="attr:{id: $data.qq, src:$data.icon}"> <span
+                            data-bind="css:{add:$data.status == 0, succ:$data.status == 1}"></span> <span
+                            class="nickname" data-bind="text: $data.nickname"></span> <span class="tips"
+                                                                                            data-bind="text: $data.tips"></span></a>
+                    </div>
+                </div>
+            </div>
+            <div data-bind="visible: active()">
+                <div class="active-logo"></div>
+                <div class="need-active">等待激活</div>
+                <div class="mail-has-send" data-bind="text: mail_has_send"></div>
+                <div class="active-tips">请在24小时内登录您的邮箱，按照邮件中的提示激活帐号。</div>
+                <button class="goto-mail" data-bind="click: openMail, visible: IsKnownEmail()">登录邮箱</button>
+                <div class="need-help">如果您没有收到激活邮件</div>
+                <div class="help-list">
+                    <div class="need-tips">您可以尝试以下方法</div>
+                    <div class="need-tips">1. 查看您邮箱的垃圾箱，激活邮件是否被误认为是垃圾邮件</div>
+                    <a href="javascript:void(0)" data-bind="click: resend" class="need-tips">2. 点击这里让系统重新发送一封邮件</a>
+                    <div class="need-tips">3. 如果您总收不到，<a href="javascript:location.reload()">可以点击这里更换其他邮箱地址</a></div>
+                </div>
+            </div>
+        </div>
+        <div class="error" data-bind="visible: error()">
+            <div class="error-logo"></div>
+            <div class="error-msg" data-bind="text: errorMsg"></div>
+            <div class="error-link"><a href="javascript:void(0)" data-bind="click:errorReturn">返回</a>|<a
+                    href="javascript:void(0)" data-bind="click: feedback">意见反馈</a></div>
+        </div>
+        <div class="footer">Copyright <span>©</span> 1998-
+            <script>document.write((new Date).getFullYear())</script>
+            Tencent All Rights Reserved
+        </div>
+        <div class="sms-up-dialog" style="display:none" data-bind="visible: is_up_sms()">
+            <div class="close" data-bind="click:function(){$root.is_up_sms(false)}"></div>
+            <div class="please">请发送短信帮助我们确认你的身份</div>
+            <div><span class="verb">编辑短信：</span> <span class="target">1</span></div>
+            <div><span class="verb">发送至：</span> <span data-bind="text: up_sms_port_string" class="target"></span> <span
+                    class="error-msg" data-bind="visible: up_port_updated()">(接收号码已更新)</span></div>
+            <div class="price">除运营商收取的标准短信费用外，无额外费用。</div>
+            <button data-bind="click: submit" class="submit" id="has_up_sms">我已发送短信，下一步</button>
+            <div class="error-msg" data-bind="visible: up_error_msg().length"><span
+                    data-bind="text: up_error_msg"></span> <span data-bind="visible: up_error_count() > 2">或<a href="#"
+                                                                                                               onclick="app.switchUpPort()">更换接收号码</a></span>
+            </div>
+        </div>
+
+        <div class="verify-dialog" id="verify-dialog" style="display:none" data-bind="visible: is_verify()">
+            <div class="close" data-bind="click:closeVerify(), visible: can_close_verify()"></div>
+            <div id="verify-content"></div>
+        </div>
+    </div>
+</div>
+<div class="sms-up-background" style="display:none"
+     data-bind="visible: is_up_sms() || is_verify() || is_mobile_qq_register()"></div>
+<script src="https://cdn-go.cn/aegis/aegis-sdk/latest/aegis.min.js?bid=3977"></script>
+<script src="https://ssl.captcha.qq.com/TCaptcha.js"></script>
+<script type="text/javascript">var aegis = new Aegis({id: 1134})</script>
+<script type="text/javascript">window.lang = 2052</script>
+<script src="https://qq-web.cdn-go.cn/zc.qq.com/1c037ba1/v3/js/index-15a38c0a78.js"></script>
+<script type="text/javascript" src="//tajs.qq.com/stats?sId=61685996" charset="UTF-8"></script>
+</body>
+</html>

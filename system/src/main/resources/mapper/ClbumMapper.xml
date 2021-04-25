@@ -1,0 +1,12 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="com.you.system.mapper.ClbumMapper">
+
+    <select id="selectListByClbumVO" resultType="com.you.system.entity.Clbum">
+        select cl.clbum_id,clbum_name,student_num,gr.grade_id,grade_type from clbum cl , grade gr
+        where gr.grade_id =cl.grade_id
+        <if test="gradeId!=null and gradeId!=0">and gr.grade_id=#{gradeId}</if>
+        <if test="clbumName!=null and clbumName!='' ">and cl.clbum_name like concat('%',#{clbumName},'%')</if>
+
+    </select>
+</mapper>

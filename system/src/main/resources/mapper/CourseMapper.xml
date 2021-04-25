@@ -1,0 +1,19 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="com.you.system.mapper.CourseMapper">
+    <insert id="addCourse">
+        insert into clbum_course(course_id,clbum_id) values (#{courseId},#{clbumId})
+    </insert>
+    <delete id="deleteCourseByCourseId">
+        delete from clbum_course where clbum_id=#{clbumId} and course_id=#{courseId}
+    </delete>
+
+
+    <select id="getAllCourseByClbumId" resultType="com.you.system.entity.Course">
+        select co.course_id,course_name,max_score from course co ,clbum_course cs
+        where co.course_id=cs.course_id and clbum_id=#{clbumId}
+    </select>
+    <select id="courseIsExist" resultType="java.lang.Integer">
+        select count(*) from clbum_course where clbum_id=#{clbumId} and course_id=#{courseId}
+    </select>
+</mapper>

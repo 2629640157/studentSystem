@@ -1,0 +1,33 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="com.you.system.mapper.UserMapper">
+    <!-- select * from user u
+     right join clbum cl on cl.clbum_id =u.clbum_id
+     right join grade gr on gr.grade_id =cl.grade_id
+     where auth=#{auth}
+     <if test="userName !=null and userName !='' ">and user_name =#{userName}</if>
+     <if test="sex!=null and sex !=2">and sex=#{sex}</if>
+     <if test="gradeId!=null and gradeId!=0">and gr.grade_id=#{gradeId}</if>
+     <if test="clbumName!=null and clbumName!='' ">and
+         cl.clbum_id in (select clbum_id from clbum where clbum_name like concat('%',#{clbumName},'%'))
+     </if>-->
+
+
+    <select id="selectListByUserVo" resultType="com.you.system.entity.User">
+        select user_id,login_account,user_name,sex,age,phone,cl.clbum_id from user u
+        ,clbum cl , grade gr where auth=#{auth} and cl.clbum_id =u.clbum_id and gr.grade_id =cl.grade_id
+        <if test="userName !=null and userName !='' ">and user_name like concat('%',#{userName},'%')</if>
+        <if test="sex!=null and sex !=2">and sex=#{sex}</if>
+        <if test="gradeId!=null and gradeId!=0">and gr.grade_id=#{gradeId}</if>
+        <if test="clbumName!=null and clbumName!='' ">and
+            cl.clbum_id in (select clbum_id from clbum where clbum_name like concat('%',#{clbumName},'%'))
+        </if>
+    </select>
+    <select id="selectClbumIdByName" resultType="java.lang.Integer">
+        select clbum_id from clbum where clbum_name like concat('%',#{clbumName},'%')
+    </select>
+    <select id="selectListByScores" resultType="com.you.system.entity.User">
+       select u.user_id,user_name FROM result r left join exam e on e.exam_id =r.exam_id RIGHT  join  user u  on u.user_id =r.user_id
+           where  time=#{dateStr} and  clbum_id=#{clbumId}  GROUP BY u.user_id ORDER BY SUM(score) desc
+    </select>
+</mapper>

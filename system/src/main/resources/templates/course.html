@@ -1,0 +1,359 @@
+<html lang="zh-CN" xmlns:th="http://www.thymeleaf.org">
+<head>
+    <meta charset="UTF-8">
+    <meta http-equiv="X-UA-Compatible" content="IE=edge">
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+    <meta name="description" content="">
+    <meta name="author" content="">
+    <base th:href="@{/}">
+    <link rel="stylesheet" href="bootstrap/css/bootstrap.min.css">
+    <link rel="stylesheet" href="css/font-awesome.min.css">
+    <link rel="stylesheet" href="css/main.css">
+    <script src="jquery/jquery-2.1.1.min.js"></script>
+    <script src="bootstrap/js/bootstrap.min.js"></script>
+    <script src="script/docs.min.js"></script>
+    <script src="layer/layer.js"></script>
+    <style>
+        .tree li {
+            list-style-type: none;
+            cursor: pointer;
+        }
+
+        table tbody tr:nth-child(odd) {
+            background: #F4F4F4;
+        }
+
+        table tbody td:nth-child(even) {
+            color: #C00;
+        }
+    </style>
+
+    <script th:inline="javascript">
+        $(function () {
+            window.clbumId = [[${clbumId}]];
+            generatorPage();
+            //添加
+            $(".saveClbum").click(function () {
+                var courseName = $("div[id=AddCourseModal] input[name=courseName]").val();
+                var maxScore = $("div[id=AddCourseModal] input[name=maxScore]").val();
+                // $(".saveClbum").data("dismiss","modal") ;
+                $.ajax({
+                    url: "/course/save/one",
+                    type: "post",
+                    data: {
+                        "courseName": courseName,
+                        "maxScore": maxScore,
+                        "clbumId": window.clbumId
+                    },
+                    async: false,
+                    dataType: "json",
+                    success: function (result) {
+                        $("div[id=AddCourseModal] input[name=courseName]").val("");
+                        $("div[id=AddCourseModal] input[name=maxScore]").val("");
+                        if (result.operationResult == "FAILED") {
+                            layer.msg(result.operationMessage, {t: 2000, icon: 2, shift: 4});
+                            return;
+                        }
+                        generatorPage();
+                        layer.msg("添加成功！", {time: 2000, icon: 1, shift: 4});
+                    },
+                    error: function (result) {
+                        layer.msg(result.operationMessage, {t: 2000, icon: 2, shift: 4});
+                    }
+                });
+            });
+            //获取数据修改
+            $(".updateClbum").click(function () {
+                var maxScore = $("div[id=UpdateClbumModal] input[name=maxScore]").val();
+                var courseId = $("div[id=UpdateClbumModal] input[name=courseId]").val();
+                $.ajax({
+                    url: "/course/update/by/courseId",
+                    type: "post",
+                    data: {
+                        "maxScore": maxScore,
+                        "courseId": courseId
+                    },
+                    async: false,
+                    dataType: "json",
+                    success: function (result) {
+                        if (result.operationResult == "FAILED") {
+                            layer.msg(result.operationMessage, {t: 2000, icon: 2, shift: 4});
+                            return;
+                        }
+
+                        generatorPage();
+                        layer.msg("修改成功！", {time: 2000, icon: 1, shift: 4});
+                    },
+                    error: function (result) {
+                        layer.msg(result.operationMessage, {t: 2000, icon: 2, shift: 4});
+                    }
+                });
+            })
+
+            $(".deleteCourse").click(function () {
+                var courseId = $("div[id=deleteCourseModal] input[name=courseId]").val();
+                $.ajax({
+                    url: "/course/delete/by/courseId",
+                    type: "post",
+                    data: {
+                        "clbumId": window.clbumId,
+                        "courseId": courseId
+                    },
+                    async: false,
+                    dataType: "json",
+                    success: function (result) {
+                        if (result.operationResult == "FAILED") {
+                            layer.msg(result.operationMessage, {t: 2000, icon: 2, shift: 4});
+                            return;
+                        }
+
+                        generatorPage();
+                        layer.msg("删除成功！", {time: 2000, icon: 1, shift: 4});
+                    },
+                    error: function (result) {
+                        layer.msg(result.operationMessage, {t: 2000, icon: 2, shift: 4});
+                    }
+                });
+            })
+        });
+
+        function generatorPage() {
+            var rolePageInfo = getRoleInfoByRemote();
+            fullTable(rolePageInfo);
+
+        }
+
+        //获取数据的函数
+        function getRoleInfoByRemote() {
+            var ajaxResult = $.ajax({
+                "url": "course/getAll/by/clbumId",
+                "type": "post",
+                "data": {
+                    "clbumId": window.clbumId,
+                },
+                "async": false, // 发送的请求是一个异步的请求
+                "dataType": "json"//指定返回数据的类型
+            });
+            var result = ajaxResult.responseJSON;
+            if (ajaxResult.status != 200) {
+                layer.msg("获取数据失败，请联系管理员！", {time: 2000, icon: 2, shift: 6});
+                return;
+            }
+            // 请求没有问题
+            // 请求状态码是200不一定就有数据，可能后台代码出现异常。
+            if (result.operationResult == "FAILED") {
+                layer.msg(result.operationMessage, {time: 2000, icon: 2, shift: 6});
+                return;
+            }
+            return result.queryData;
+        }
+
+        //填充表格函数
+        function fullTable(rolePageInfo) {
+            $("#roleTbody").empty();
+            //获取tbody对象
+            var str = "";
+            if (rolePageInfo == undefined) {
+                return;
+            }
+            if (rolePageInfo.length == 0) {
+                str = "<h1>没有相关科目，请<a data-toggle=\"modal\"\n" +
+                    "                            data-target=\"#AddCourseModal\">添加</a>！</h1>";
+            } else {
+                for (var i = 0; i < rolePageInfo.length; i++) {
+                    var course = rolePageInfo[i];
+                    var courseId = course.courseId;
+                    var courseName = course.courseName;
+                    var maxScore = course.maxScore;
+                    str = str + "<tr>" +
+                        "                                <td >" + (i + 1) + "</td>" +
+                        "                                <td >" + courseName + "</td>" +
+                        "                                <td >" + maxScore + "</td>" +
+                        "                                <td >" +
+                        "                                    <button type=\"button\" id='" + courseId + "' onclick='updateClbum(this)'  class=\"btn btn-primary btn-xs editBtn\" data-toggle=\"modal\"\n" +
+                        "                            data-target=\"#UpdateClbumModal\"><i class=\" glyphicon glyphicon-pencil\"></i></button>" +
+                        "                                    <button type=\"button\"  id='" + courseId + "' onclick='deleteClbum(this)' class=\"btn btn-danger btn-xs deleteOne\" data-toggle=\"modal\"\n" +
+                        "                            data-target=\"#deleteCourseModal\"><i class=\" glyphicon glyphicon-remove\"></i></button>" +
+                        "                                </td>" +
+                        "                            </tr>"
+                }
+            }
+            $("#roleTbody").append(str);
+        }
+
+
+        //删除
+        function deleteClbum(course) {
+            var courseId = course.id;
+            $("div[id=deleteCourseModal] input[name=courseId]").val(courseId);
+
+        }
+
+        //修改之前回显
+        function updateClbum(course) {
+            var courseId = course.id;
+            $.ajax({
+                url: "/course/get/by/courseId",
+                type: "post",
+                data: {
+                    "courseId": courseId
+                },
+                async: false,
+                dataType: "json",
+                success: function (result) {
+                    if (result.operationResult == "FAILED") {
+                        layer.msg(result.operationMessage, {t: 2000, icon: 2, shift: 4});
+                        return;
+                    }
+                    var course = result.queryData;
+                    $("div[id=UpdateClbumModal] input[name=maxScore]").val(course.maxScore);
+                    //隐藏id，修改时候需要
+                    $("div[id=UpdateClbumModal] input[name=courseId]").val(course.courseId);
+                },
+                error: function (result) {
+                    layer.msg(result.operationMessage, {t: 2000, icon: 2, shift: 4});
+                }
+            });
+        }
+
+
+    </script>
+</head>
+
+<body>
+
+<div th:insert="~{common :: #top}"></div>
+
+<div class="container-fluid">
+    <div class="row">
+        <div th:replace="~{common :: #middle}"></div>
+        <div class="col-sm-9 col-sm-offset-3 col-md-10 col-md-offset-2 main">
+            <div class="panel panel-default">
+                <div class="panel-heading">
+                    <h3 class="panel-title"><i class="glyphicon glyphicon-th"></i> 课程管理</h3>
+                </div>
+                <div class="panel-body">
+                    <!-- Button trigger modal -->
+                    <button type="button" class="btn btn-primary " style="float:right;" data-toggle="modal"
+                            data-target="#AddCourseModal">
+                        <i class="glyphicon glyphicon-plus "></i> 新增
+                    </button>
+                    <br>
+                    <hr style="clear:both;">
+                    <div class="table-responsive">
+                        <table class="table  table-bordered">
+                            <thead>
+                            <tr>
+                                <th width="30">#</th>
+                                <th>科目名称</th>
+                                <th>分值</th>
+                                <th width="100">操作</th>
+                            </tr>
+                            </thead>
+                            <tbody id="roleTbody">
+                            </tbody>
+                        </table>
+
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+
+<!-- 添加Modal -->
+<div class="modal fade" id="AddCourseModal" tabindex="-1" role="dialog" aria-labelledby="exampleModalLabel"
+     aria-hidden="true">
+    <div class="modal-dialog">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h3 class="modal-title" id="exampleModalLabel" align="center"><b>课程信息录入</b></h3>
+                <button type="button" class="close" data-dismiss="modal" aria-label="Close">
+                    <span aria-hidden="true">&times;</span>
+                </button>
+                <div class="form-group">
+                    <label for="exampleFormControlInput1">课程名称</label>
+                    <input type="text" name="courseName" class="form-control" id="exampleFormControlInput1">
+                </div>
+                <div class="form-group">
+                    <label for="exampleFormControlSelect2">分值</label>
+                    <input type="number" name="maxScore" class="form-control" id="exampleFormControlSelect2">
+                </div>
+                <div class="modal-footer">
+                    <button type="button" class="btn btn-secondary" data-dismiss="modal">Close</button>
+                    <button type="button" class="btn btn-primary saveClbum" data-dismiss="modal">Save changes</button>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+<!-- 修改Modal -->
+<div class="modal fade" id="UpdateClbumModal" tabindex="-1" role="dialog" aria-labelledby="exampleModalLabel"
+     aria-hidden="true">
+    <div class="modal-dialog">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h3 class="modal-title" id="UpdateModalLabel" align="center"><b>课程信息修改</b></h3>
+                <button type="button" class="close" data-dismiss="modal" aria-label="Close">
+                    <span aria-hidden="true">&times;</span>
+                </button>
+                <input type="hidden" name="courseId">
+
+                <div class="form-group">
+                    <label for="UpdateFormControlSelect1">分值</label>
+                    <input type="number" name="maxScore" class="form-control" id="UpdateFormControlSelect1">
+                </div>
+                <div class="modal-footer">
+                    <button type="button" class="btn btn-secondary" data-dismiss="modal">Close</button>
+                    <button type="button" class="btn btn-primary updateClbum" data-dismiss="modal">Save changes</button>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+<!-- 删除Modal -->
+<div class="modal fade" id="deleteCourseModal" tabindex="-1" role="dialog" aria-labelledby="exampleModalLabel"
+     aria-hidden="true">
+    <div class="modal-dialog">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h3 class="modal-title" id="deleteModalLabel" align="center"><b>课程信息删除</b></h3>
+                <button type="button" class="close" data-dismiss="modal" aria-label="Close">
+                    <span aria-hidden="true">&times;</span>
+                </button>
+                <input type="hidden" name="courseId">
+                <br>
+                <br>
+                <div class="form-group">
+                    <h2><p>是否删除该门课程？</p></h2>
+                </div>
+                <div class="modal-footer">
+                    <button type="button" class="btn btn-secondary" data-dismiss="modal">Close</button>
+                    <button type="button" class="btn btn-primary deleteCourse" data-dismiss="modal">Save changes
+                    </button>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+<script type="text/javascript">
+    $(function () {
+        $(".list-group-item").click(function () {
+            if ($(this).find("ul")) {
+                $(this).toggleClass("tree-closed");
+                if ($(this).hasClass("tree-closed")) {
+                    $("ul", this).hide("fast");
+                } else {
+                    $("ul", this).show("fast");
+                }
+            }
+        });
+    });
+
+    $("tbody .btn-success").click(function () {
+        window.location.href = "assignPermission.html";
+    });
+</script>
+</body>
+</html>

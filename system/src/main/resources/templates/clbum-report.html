@@ -1,0 +1,465 @@
+<html lang="zh-CN" xmlns:th="http://www.thymeleaf.org">
+<head>
+    <meta charset="UTF-8">
+    <meta http-equiv="X-UA-Compatible" content="IE=edge">
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+    <meta name="description" content="">
+    <meta name="author" content="">
+    <base th:href="@{/}">
+    <link rel="stylesheet" href="bootstrap/css/bootstrap.min.css">
+    <link rel="stylesheet" href="css/font-awesome.min.css">
+    <link rel="stylesheet" href="css/main.css">
+    <script src="jquery/jquery-2.1.1.min.js"></script>
+    <script src="bootstrap/js/bootstrap.min.js"></script>
+    <script src="script/docs.min.js"></script>
+    <script src="layer/layer.js"></script>
+    <script type="text/javascript">
+        $(function () {
+            $(".list-group-item").click(function () {
+                if ($(this).find("ul")) {
+                    $(this).toggleClass("tree-closed");
+                    if ($(this).hasClass("tree-closed")) {
+                        $("ul", this).hide("fast");
+                    } else {
+                        $("ul", this).show("fast");
+                    }
+                }
+            });
+        });
+        $("tbody .btn-success").click(function () {
+            window.location.href = "assignRole.html";
+        });
+        $(function () {
+
+            window.clbumId = [[${clbum.clbumId}]];
+            window.dateStr = "";
+            window.figureData = [];
+
+            generatorPage();
+            //模糊查询
+            $(".getReportByCondition").click(function () {
+                var dateStr = $("select[name=time]:optional").val();
+                window.dateStr = dateStr;
+                generatorPage();
+            });
+
+            $(".saveExam").click(function () {
+                $("div[id=updateScoreModal]").modal('hide');
+                var examId = $("div[id=updateScoreModal] input[name=examId]").val();
+                var userId = $("div[id=updateScoreModal] input[name=userId]").val();
+                var courseId = $("div[id=updateScoreModal] input[name=courseId]").val();
+                var score = $("div[id=updateScoreModal] input[name=score]").val();
+                if (examId == null || examId == "null") {
+                    examId = 0;
+                }
+                $.ajax({
+                    url: "exam/update/score/by/ids",
+                    type: "post",
+                    data: {
+                        "examId": examId,
+                        "userId": userId,
+                        "courseId": courseId,
+                        "score": score,
+                        "dateStr": window.dateStr
+                    },
+                    async: false,
+                    dataType: "json",
+                    success: function (result) {
+                        if (result.operationResult == "FAILED") {
+                            layer.msg(result.operationMessage, {t: 2000, icon: 2, shift: 4});
+                            return;
+                        }
+
+                        generatorPage();
+                        layer.msg("修改成功！", {time: 2000, icon: 1, shift: 4});
+                    },
+                    error: function (result) {
+                        layer.msg(result.operationMessage, {t: 2000, icon: 2, shift: 4});
+                    }
+                })
+
+            });
+        });
+
+        function generatorPage(val) {
+            var rolePageInfo = getRoleInfoByRemote(val);
+            fullTable(rolePageInfo);
+            $("#query").show();
+            $("#add").show();
+            $("#batchUpdate").show();
+            $("select[name=time]").prop("disabled", false)
+        }
+
+        function batchUpdate() {
+            var rolePageInfo = getRoleInfoByRemote();
+            fullTableToUpdate(rolePageInfo);
+            $("#save").show();
+            $("#abolish").show();
+            $("#query").hide();
+            $("#add").hide();
+            $("#report").hide();
+            $("#batchUpdate").hide();
+            $("select[name=time]").prop("disabled", true)
+        }
+
+        //获取数据的函数
+        function getRoleInfoByRemote(val) {
+            var ajaxResult = $.ajax({
+                "url": "exam/get/result/by/clbumId/and/time",
+                "type": "post",
+                "data": {
+                    "clbumId": window.clbumId,
+                    "dateStr": window.dateStr,
+                    "flag": val
+                },
+                "async": false, // 发送的请求是一个异步的请求
+                "dataType": "json"//指定返回数据的类型
+            });
+            var result = ajaxResult.responseJSON;
+            if (ajaxResult.status != 200) {
+                layer.msg("获取数据失败，请联系管理员！", {time: 2000, icon: 2, shift: 6});
+                return;
+            }
+            // 请求没有问题
+            // 请求状态码是200不一定就有数据，可能后台代码出现异常。
+            if (result.operationResult == "FAILED") {
+                layer.msg(result.operationMessage, {time: 2000, icon: 2, shift: 6});
+                return;
+            }
+            return result.queryData;
+        }
+
+        //填充表格函数
+        function fullTable(rolePageInfo) {
+            $("#roleTbody").empty();
+            //获取tbody对象
+            var str = "";
+            if (rolePageInfo == undefined) {
+                return;
+            }
+            for (var i = 0; i < rolePageInfo.length; i++) {
+                //保存总分
+                var sum = 0;
+                var userVO = rolePageInfo[i];
+                window.figureData.push(userVO);
+                var userId = userVO.userId;
+                var userName = userVO.userName;
+                var clbumVO = userVO.clbumVO;
+                var examVOS = userVO.examVOS;
+                // var gradeType = grade.gradeType;
+                str = str + "<tr>" +
+                    "                                <th scope=\"row\">" + (i + 1) + "</th>" +
+                    "                                <td >" + userName + "</td>";
+                for (var j = 0; j < examVOS.length; j++) {
+                    var examVO = examVOS[j];
+                    var examId = examVO.examId;
+                    var score = examVO.score;
+
+                    var course = examVO.course;
+                    var courseId = course.courseId;
+                    var courseName = course.courseName;
+                    if (score == -1) {
+                        score = "";
+                        sum += 0;
+                    } else {
+                        sum += score;
+                    }
+                    str = str + "<td  id='" + (userId + ":" + examId + ":" + courseId) + "' title='" + score + "' lang='" + userName + "'  class='" + courseName + "'  ondblclick='changeScore(this)'>" + score + "</td>";
+
+                }
+                str = str + "<td >" + sum +
+                    "                                </td>" +
+                    "                            </tr>"
+            }
+            $("#roleTbody").append(str);
+
+        }
+
+        //填充表格函数
+        function fullTable2(rolePageInfo) {
+            $("#roleTbody").empty();
+            $("#roleThead").empty();
+            //获取tbody对象
+            var str = "";
+            if (rolePageInfo == undefined) {
+                return;
+            }
+            for (var i = 0; i < rolePageInfo.records.length; i++) {
+                var user = rolePageInfo.records[i];
+                var userId = user.userId;
+                var userName = user.userName;
+                var sex = user.sex;
+                var age = user.age;
+                var clbumVO = user.clbumVO;
+                var clbumName = clbumVO.clbumName;
+                var grade = clbumVO.grade;
+                var gradeType = grade.gradeType;
+                str = str + "<tr>" +
+                    "                                <td >" + (i + 1) + "</td>" +
+                    "                                <td >" + userName + "</td>" +
+                    "                                <td >" + sex + "</td>" +
+                    "                                <td >" + age + "</td>" +
+                    "                                <td >" + gradeType + "</td>" +
+                    "                                <td >" + clbumName + "</td>" +
+                    "                                <td >" +
+                    "                                    <button type=\"button\" id='" + userId + "' onclick='showAssign(this)' data-toggle='modal' data-target='#AddClbumModal' class=\"btn btn-success btn-xs\" ><i class=\" glyphicon glyphicon-check\"></i></button>" +
+                    "                                </td>" +
+                    "                            </tr>"
+            }
+            $("#roleTbody").append(str);
+            $("#roleThead").append("<tr>\n" +
+                "                                <th width=\"30\">#</th>\n" +
+                "                                <th>名称</th>\n" +
+                "                                <th>性别</th>\n" +
+                "                                <th>年龄</th>\n" +
+                "                                <th>年级</th>\n" +
+                "                                <th>班级</th>\n" +
+                "                                <th width=\"100\">操作</th>\n" +
+                "                            </tr>")
+
+        }
+
+        //批量修改时填充表格函数
+        function fullTableToUpdate(rolePageInfo) {
+            $("#roleTbody").empty();
+            //获取tbody对象
+            var str = "";
+            if (rolePageInfo == undefined) {
+                return;
+            }
+            for (var i = 0; i < rolePageInfo.length; i++) {
+                var userVO = rolePageInfo[i];
+                var userId = userVO.userId;
+                var userName = userVO.userName;
+                var clbumVO = userVO.clbumVO;
+                var examVOS = userVO.examVOS;
+                // var gradeType = grade.gradeType;
+                str = str + "<tr>" +
+                    "                                <th scope=\"row\">" + (i + 1) + "</th>" +
+                    "                                <td >" + userName + "</td>";
+                for (var j = 0; j < examVOS.length; j++) {
+                    var examVO = examVOS[j];
+                    var examId = examVO.examId;
+                    var score = examVO.score;
+                    var course = examVO.course;
+                    var courseId = course.courseId;
+                    var courseName = course.courseName;
+                    if (score == -1) {
+                        score = ""
+                    }
+                    str = str + "<td  id='" + (userId + ":" + examId + ":" + courseId) + "' title='" + score + "' lang='" + userName + "'  class='" + courseName + "'  ondblclick='changeScore(this)'> <input name='scores' id='" + examId + "' value='" + score + "'></td>";
+                }
+                str = str + "<td >" +
+                    "                                    <button type=\"button\" id='" + userId + "' onclick='showAssign(this)' class=\"btn btn-success btn-xs\" ><i class=\" glyphicon glyphicon-check\"></i></button>" +
+                    "                                </td>" +
+                    "                            </tr>"
+            }
+            $("#roleTbody").append(str);
+
+        }
+
+        function showAssign(user) {
+            var userId = user.id;
+            window.location.href = "exam/go/clbum/report/by/" + clbumId;
+
+        }
+
+        function changeScore(score) {
+            var id = score.id;
+            var scoreVar = score.title;
+            var courseName = score.className;
+            var userName = score.lang;
+            var ids = id.split(":");
+            var userId = ids[0];
+            var examId = ids[1];
+            var courseId = ids[2];
+            $("div[id=updateScoreModal] label").empty();
+            $("div[id=updateScoreModal] label").append(userName + "同学的" + courseName + "成绩为");
+            $("input[name=score]").val(scoreVar);
+            $("div[id=updateScoreModal] input[name=examId]").val(examId);
+            $("div[id=updateScoreModal] input[name=userId]").val(userId);
+            $("div[id=updateScoreModal] input[name=courseId]").val(courseId);
+            $("div[id=updateScoreModal]").modal('show');
+
+        }
+
+
+        //批量修改后，进行保存
+        function saveChanges() {
+            var scores = [];
+            var examIds = [];
+            var exams = $("input[name=scores]");
+            $.each(exams, function (index, object) {
+                examIds.push(object.id);
+            });
+            $.each(exams, function (index, object) {
+                if (object.value == "") {
+                    scores.push(-1);
+                } else {
+                    scores.push(object.value);
+                }
+            });
+            var dataObj = {
+                "scores": scores,
+                "examIds": examIds
+            };
+            var dataStr = JSON.stringify(dataObj);
+            $.ajax({
+                url: "exam/update/all",
+                type: "post",
+                data: dataStr,
+                contentType: "application/json",
+                dateType: "json",
+                success: function (response) {
+                    if (response.operationResult == "FAILED") {
+                        layer.msg(response.operationMessage, {time: 2000, icon: 2, shift: 6});
+                        return;
+                    }
+                    layer.msg("修改成功！", {time: 2000, icon: 1, shift: 1});
+                    $("#report").show();
+                    generatorPage();
+                },
+                error: function (response) {
+                    layer.msg(response.operationMessage, {time: 2000, icon: 2, shift: 6});
+
+                }
+            })
+        }
+
+        //批量修改后，点击取消（为什么不用history.back:该页面全是ajax请求）
+        function cancel() {
+            $("#save").hide();
+            $("#abolish").hide();
+            $("#report").show();
+            generatorPage()
+        }
+
+        function goToAddPage() {
+            window.location.href = "exam//to/add/page/" + window.clbumId;
+        }
+
+        function getReportFigure() {
+            window.location.href = "/exam/get/report/figure?clbumId=" + window.clbumId + "&dateStr=" + window.dateStr
+        }
+
+    </script>
+    <style>
+        .tree li {
+            list-style-type: none;
+            cursor: pointer;
+        }
+
+        table tbody tr:nth-child(odd) {
+            background: #F4F4F4;
+        }
+
+        table tbody td:nth-child(even) {
+            color: #C00;
+        }
+    </style>
+</head>
+
+<body>
+<div th:insert="~{common :: #top}"></div>
+
+<div class="container-fluid">
+    <div class="row">
+        <div th:insert="~{common :: #middle}"></div>
+        <div class="col-sm-9 col-sm-offset-3 col-md-10 col-md-offset-2 main">
+            <div class="panel panel-default">
+                <div class="panel-heading">
+                    <h3 class="panel-title"><i class="glyphicon glyphicon-th"></i>&nbsp;&nbsp;<b>[[${grade.gradeType}]]
+                        &nbsp; [[${clbum.clbumName}]]</b>成绩 &nbsp; &nbsp; ( <span
+                            style="color: #00CCFF">双击需要修改的成绩进行修改</span>)</h3>
+                </div>
+                <div class="panel-body">
+                    <form class="form-inline" role="form" style="float:left;">
+                        <div class="form-group has-feedback">
+                            <div class="input-group">
+                                <div class="input-group-addon">查询条件</div>&nbsp;
+                                考试时间： <select name="time">
+                                <option th:each="time : ${times}"
+                                        th:value="${time}">[[${time}]]
+                                </option>
+                            </select>&nbsp;
+                            </div>
+
+                        </div>
+
+                        <button type="button" id="query" class="btn btn-warning  getReportByCondition"><i
+                                class="glyphicon glyphicon-search"></i> 查询
+                        </button>
+                    </form>
+                    <button type="button" id="batchUpdate" class="btn btn-info updateAllExam " onclick="batchUpdate()"
+                            style="float:right;">
+                        <i class="glyphicon glyphicon-pencil "></i> 批量修改
+                    </button>
+                    <button type="button" class="btn btn-primary" id="add" onclick="goToAddPage()" style="float:right;">
+                        <i class="glyphicon glyphicon-plus "></i> 新增
+                    </button>
+                    <br>
+                    <hr style="clear:both;">
+                    <button type="button" class="btn btn-warning" id="ascend" value="0" onclick="generatorPage(0)">升序
+                    </button>
+                    <button type="button" class="btn btn-warning" id="descend" value="1" onclick="generatorPage(1)">降序
+                    </button>
+                    <div class="table-responsive">
+
+                        <table class="table table-hover">
+                            <thead>
+                            <tr>
+                                <th scope="col">#</th>
+                                <th scope="col">姓名</th>
+                                <th scope="col" th:each="course : ${courses}">[[${course.courseName}]]</th>
+                                <th scope="col">总分</th>
+                            </tr>
+                            </thead>
+                            <tbody id="roleTbody">
+
+                            </tbody>
+                        </table>
+
+                        <button type="button" id="save" style="margin-left: 40%;display: none" class="btn btn-success"
+                                onclick="saveChanges()">保存
+                        </button>
+                        <button type="button" id="abolish" onclick="cancel()" style="margin-right: 40%;display: none"
+                                class="btn btn-danger">取消
+                        </button>
+                        <button type="button" class="btn btn-primary btn-lg" id="report" style="float: right"
+                                onclick="getReportFigure()">查看分析报告
+                        </button>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+<!-- 修改Modal -->
+<div class="modal fade" id="updateScoreModal" tabindex="-1" role="dialog" aria-labelledby="exampleModalLabel"
+     aria-hidden="true">
+    <div class="modal-dialog">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h3 class="modal-title" id="exampleModalLabel" align="center"><b>成绩修改</b></h3>
+                <button type="button" class="close" data-dismiss="modal" aria-label="Close">
+                    <span aria-hidden="true">&times;</span>
+                </button>
+                <input type="hidden" name="examId">
+                <input type="hidden" name="userId">
+                <input type="hidden" name="courseId">
+                <div class="form-group">
+                    <label for="exampleFormControlSelect2"></label>
+                    <input type="number" name="score" class="form-control" id="exampleFormControlSelect2">
+                </div>
+                <div class="modal-footer">
+                    <button type="button" class="btn btn-secondary" data-dismiss="modal">Close</button>
+                    <button type="button" class="btn btn-primary saveExam" data-dismiss="modal">Save changes</button>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+</body>
+</html>
+
+

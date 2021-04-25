@@ -1,0 +1,168 @@
+<html lang="zh-CN" xmlns:th="http://www.thymeleaf.org">
+<head>
+    <meta charset="UTF-8">
+    <meta http-equiv="X-UA-Compatible" content="IE=edge">
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+    <meta name="description" content="">
+    <meta name="author" content="">
+    <base th:href="@{/}">
+    <link rel="stylesheet" href="bootstrap/css/bootstrap.min.css">
+    <link rel="stylesheet" href="css/font-awesome.min.css">
+    <link rel="stylesheet" href="css/main.css">
+    <script src="jquery/jquery-2.1.1.min.js"></script>
+    <script src="bootstrap/js/bootstrap.min.js"></script>
+    <script src="script/docs.min.js"></script>
+    <script src="layer/layer.js"></script>
+    <script type="text/javascript">
+        $(function () {
+            $("#score").addClass("active")
+        });
+        $("tbody .btn-success").click(function () {
+            window.location.href = "assignRole.html";
+        });
+
+    </script>
+    <style>
+        .tree li {
+            list-style-type: none;
+            cursor: pointer;
+        }
+
+        table tbody tr:nth-child(odd) {
+            background: #F4F4F4;
+        }
+
+        table tbody td:nth-child(even) {
+            color: #C00;
+        }
+    </style>
+    <script>
+        $(function () {
+            window.dateStr = "";
+            window.clbumId = [[${clbum.clbumId}]];
+
+
+            $(".getDate").change(function () {
+                var dateStr = $("input[id=add]").val();
+                window.dateStr = dateStr;
+            })
+        });
+
+        function saveAdd() {
+            if (window.dateStr==""||window.dateStr==null){
+                layer.msg("请选择日期！");
+                return;
+            }
+            var userIdList = [];
+            var userList = $("td[class=userId]");
+            $.each(userList, function (index, object) {
+                userIdList.push(object.id);
+            });
+            var ScoreList = [];
+            var courseList = $("td[class=userId]").nextAll().children("input");
+            $.each(courseList, function (index, object) {
+                ScoreList.push(object.value);
+            });
+            var courseIdsList = [];
+            var courseIds = $("td[id=" + userIdList[0] + "]").nextAll();
+            $.each(courseIds, function (index, object) {
+                courseIdsList.push(object.className);
+            });
+
+            var dateList = [];
+            dateList.pop();
+            dateList.push(window.dateStr);
+            var dataObj = {
+                "userIdList": userIdList,
+                "ScoreList": ScoreList,
+                "courseIdsList": courseIdsList,
+                "dateList": dateList
+
+            };
+            var dataStr = JSON.stringify(dataObj);
+               $.ajax({
+                   url: "exam/add/all",
+                   type: "post",
+                   data: dataStr,
+                   contentType: "application/json",
+                   dateType: "json",
+                   success: function (response) {
+                       if (response.operationResult == "FAILED") {
+                           layer.msg(response.operationMessage, {time: 2000, icon: 2, shift: 6});
+                           return;
+                       }
+                       layer.msg("添加成功！", {time: 2000, icon: 1, shift: 1});
+                       window.location.href = "exam/go/clbum/report/by/" + [[${clbum.clbumId}]];
+                   },
+                   error: function (response) {
+                       layer.msg(response.operationMessage, {time: 2000, icon: 2, shift: 6});
+
+                   }
+               })
+        }
+
+
+
+    </script>
+</head>
+
+<body>
+<div th:insert="~{common :: #top}"></div>
+
+<div class="container-fluid">
+    <div class="row">
+        <div th:insert="~{common :: #middle}"></div>
+        <div class="col-sm-9 col-sm-offset-3 col-md-10 col-md-offset-2 main">
+            <div class="panel panel-default">
+                <div class="panel-heading">
+                    <h3 class="panel-title"><i class="glyphicon glyphicon-th"></i>&nbsp;&nbsp;<b>[[${grade.gradeType}]]
+                        &nbsp; [[${clbum.clbumName}]]</b> 成绩</h3>
+                </div>
+                <div class="panel-body">
+                    <form class="form-inline" role="form" style="float:left;">
+                        <div class="form-group has-feedback" >
+                            <div class="input-group">
+                                <div class="input-group-addon">时间</div>&nbsp;
+                                 <input type="date" id="add" name="dateStr" class="getDate">
+                            </div>
+                        </div>
+                    </form>
+                  <!--  <form action="file/img" method="post" enctype="multipart/form-data">
+                        请选择文件上传：<input type="file" name="file">
+                        <input type="submit" value="提交">
+                    </form>-->
+                    <br>
+                    <hr style="clear:both;">
+
+                    <div class="table-responsive">
+                        <table class="table table-hover">
+                            <thead>
+                            <tr>
+                                <th scope="col">#</th>
+                                <th scope="col">姓名</th>
+                                <th scope="col" th:each="course : ${courses}">[[${course.courseName}]]</th>
+                            </tr>
+                            </thead>
+                            <tbody id="roleTbody">
+                            <tr th:each="user,userStat :${users}">
+                                <td th:text="${userStat.count}">1</td>
+                                <td class="userId" th:id="${user.userId}">[[${user.userName}]]</td>
+                                <td  th:class="${course.courseId}"  th:each="course : ${courses}"><input type="number" min="0" th:max="${course.maxScore}"></td>
+                            </tr>
+                            </tbody>
+
+                        </table>
+
+                        <button type="button" style="margin-left: 40%;" class="btn btn-success" onclick="saveAdd()">确认
+                        </button>
+                        <button type="button" style="margin-right: 40%;" onclick="history.back()" class="btn btn-danger">取消</button>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+</body>
+</html>
+
+

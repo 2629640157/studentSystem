@@ -1,0 +1,96 @@
+<html lang="zh-CN" xmlns:th="http://www.thymeleaf.org">
+<head>
+    <meta charset="UTF-8">
+    <meta http-equiv="X-UA-Compatible" content="IE=edge">
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+    <meta name="description" content="">
+    <meta name="author" content="">
+    <base th:href="@{/}">
+    <link rel="stylesheet" href="bootstrap/css/bootstrap.min.css">
+    <link rel="stylesheet" href="css/font-awesome.min.css">
+    <link rel="stylesheet" href="css/theme.css">
+    <style>
+        #footer {
+            padding: 15px 0;
+            background: #fff;
+            border-top: 1px solid #ddd;
+            text-align: center;
+        }
+
+        .seltype {
+            position: absolute;
+            margin-top: 70px;
+            margin-left: 10px;
+            color: red;
+        }
+    </style>
+</head>
+<body>
+<div th:insert="~{common::#top}"></div>
+<div class="container theme-showcase" role="main">
+    <div class="page-header">
+        <h1>实名认证 - 类型选择</h1>
+    </div>
+    <div style="padding-top:10px;">
+        <div class="row">
+            <div class="col-xs-6 col-md-3">
+                <h2>我是老师</h2>
+                <a  class="thumbnail" id="1">
+                    <img alt="100%x180"  src="img/services-box1.jpg" data-holder-rendered="true"
+                         style="height: 180px; width: 100%; display: block;">
+                </a>
+            </div>
+            <div class="col-xs-6 col-md-3">
+                <h2>我是管理员</h2>
+                <a  class="thumbnail"  id="2">
+                    <img alt="100%x180" src="img/services-box4.jpg" data-holder-rendered="true"
+                         style="height: 180px; width: 100%; display: block;">
+                </a>
+            </div>
+        </div>
+    </div>
+    <button type="button" class="btn btn-danger btn-lg btn-block" onclick="come()">认证申请
+    </button>
+</div>
+<div class="modal" tabindex="-1">
+    <div class="modal-dialog">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h5 class="modal-title">提示</h5>
+                <button type="button" class="close" data-dismiss="modal" aria-label="Close">
+                    <span aria-hidden="true">&times;</span>
+                </button>
+            </div>
+            <div class="modal-body">
+                <p>请选择认证的身份！</p>
+            </div>
+            <div class="modal-footer">
+                <button type="button" class="btn btn-secondary" data-dismiss="modal">Close</button>
+            </div>
+        </div>
+    </div>
+</div>
+<div th:insert="~{common::#floor}"></div>
+<script src="jquery/jquery-2.1.1.min.js"></script>
+<script src="bootstrap/js/bootstrap.min.js"></script>
+<script src="script/docs.min.js"></script>
+<script>
+    $(function () {
+        window.auth=0;
+    })
+    $(".thumbnail").click(function () {
+        $('.seltype').remove();
+        $(this).prepend('<div class="glyphicon glyphicon-ok seltype"></div>');
+        window.auth=this.id;
+        console.log(window.auth)
+    });
+    function come() {
+        if (window.auth==0){
+            $(".modal").modal('show')
+        }else {
+            window.location.href="/user/to/apply/"+window.auth;
+        }
+    }
+</script>
+</body>
+</html>

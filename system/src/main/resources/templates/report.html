@@ -1,0 +1,304 @@
+<html lang="zh-CN" xmlns:th="http://www.thymeleaf.org">
+<head>
+    <meta charset="UTF-8">
+    <meta http-equiv="X-UA-Compatible" content="IE=edge">
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+    <meta name="description" content="">
+    <meta name="author" content="">
+    <base th:href="@{/}">
+    <link rel="stylesheet" href="bootstrap/css/bootstrap.min.css">
+    <link rel="stylesheet" href="css/font-awesome.min.css">
+    <link rel="stylesheet" href="css/main.css">
+    <script src="jquery/jquery-2.1.1.min.js"></script>
+    <script src="bootstrap/js/bootstrap.min.js"></script>
+    <script src="script/docs.min.js"></script>
+    <script src="layer/layer.js"></script>
+    <style>
+        .tree li {
+            list-style-type: none;
+            cursor: pointer;
+        }
+
+        table tbody tr:nth-child(odd) {
+            background: #F4F4F4;
+        }
+
+        table tbody td:nth-child(even) {
+            color: #C00;
+        }
+    </style>
+
+    <script th:inline="javascript">
+        $(function () {
+            window.pageNum = 1;
+            window.clbumId = 0;
+            window.gradeId = 0;
+            window.userName = "";
+            window.clbumName = "";
+            window.totalPages = 1;
+            generatorPage();
+            //模糊查询
+            $(".getReportByCondition").click(function () {
+                var clbumName = $("input[name=clbumName]").val();
+                var userName = $("input[name=userName]").val();
+                var gradeId = $("select[name=gradeId]:optional").val();
+                window.clbumName = clbumName;
+                window.gradeId = gradeId;
+                window.userName = userName;
+                generatorPage();
+
+            });
+
+
+        });
+
+        function generatorPage() {
+            var rolePageInfo = getRoleInfoByRemote();
+            if (window.userName == null || window.userName == "") {
+                fullTable(rolePageInfo);
+            } else {
+                fullTable2(rolePageInfo);
+            }
+            fullPages(rolePageInfo)
+        }
+
+
+        //获取数据的函数
+        function getRoleInfoByRemote() {
+            var ajaxResult = $.ajax({
+                "url": "exam/getAll/by/condition",
+                "type": "post",
+                "data": {
+                    "pageNum": window.pageNum,
+                    "clbumName": window.clbumName,
+                    "gradeId": window.gradeId,
+                    "userName": window.userName
+                },
+                "async": false, // 发送的请求是一个异步的请求
+                "dataType": "json"//指定返回数据的类型
+            });
+            var result = ajaxResult.responseJSON;
+            if (ajaxResult.status != 200) {
+                layer.msg("获取数据失败，请联系管理员！", {time: 2000, icon: 2, shift: 6});
+                return;
+            }
+            // 请求没有问题
+            // 请求状态码是200不一定就有数据，可能后台代码出现异常。
+            if (result.operationResult == "FAILED") {
+                layer.msg(result.operationMessage, {time: 2000, icon: 2, shift: 6});
+                return;
+            }
+            return result.queryData;
+        }
+
+        //填充表格函数
+        function fullTable(rolePageInfo) {
+            $("#roleTbody").empty();
+            $("#roleThead").empty();
+            //获取tbody对象
+            var str = "";
+            if (rolePageInfo == undefined) {
+                return;
+            }
+            for (var i = 0; i < rolePageInfo.records.length; i++) {
+                var clbum = rolePageInfo.records[i];
+                var clbumId = clbum.clbumId;
+                var clbumName = clbum.clbumName;
+                var studentNum = clbum.studentNum;
+                var grade = clbum.grade;
+                var gradeType = grade.gradeType;
+                str = str + "<tr>" +
+                    "                                <td >" + (i + 1) + "</td>" +
+                    "                                <td >" + gradeType + "</td>" +
+                    "                                <td >" + clbumName + "</td>" +
+                    "                                <td >" + studentNum + "</td>" +
+                    "                                <td >" +
+                    "                                    <button type=\"button\" id='" + clbumId + "' onclick='showAssign(this)' class=\"btn btn-success btn-xs\" ><i class=\" glyphicon glyphicon-check\"></i></button>" +
+                    "                                </td>" +
+                    "                            </tr>"
+            }
+            $("#roleTbody").append(str);
+            $("#roleThead").append(" <tr>\n" +
+                "                                <th width=\"30\">#</th>\n" +
+                "                                <th>年级</th>\n" +
+                "                                <th>班级</th>\n" +
+                "                                <th>人数</th>\n" +
+                "                                <th width=\"100\">操作</th>\n" +
+                "                            </tr>")
+        }
+
+        //填充表格函数
+        function fullTable2(rolePageInfo) {
+            $("#roleTbody").empty();
+            $("#roleThead").empty();
+            //获取tbody对象
+            var str = "";
+            if (rolePageInfo == undefined) {
+                return;
+            }
+            for (var i = 0; i < rolePageInfo.records.length; i++) {
+                var user = rolePageInfo.records[i];
+                var userId = user.userId;
+                var userName = user.userName;
+                var sex = user.sex;
+                var age = user.age;
+                var clbumVO = user.clbumVO;
+                var clbumName = clbumVO.clbumName;
+                var grade = clbumVO.grade;
+                var gradeType = grade.gradeType;
+                str = str + "<tr>" +
+                    "                                <td >" + (i + 1) + "</td>" +
+                    "                                <td >" + userName + "</td>" +
+                    "                                <td >" + sex + "</td>" +
+                    "                                <td >" + age + "</td>" +
+                    "                                <td >" + gradeType + "</td>" +
+                    "                                <td >" + clbumName + "</td>" +
+                    "                                <td >" +
+                    "                                    <button type=\"button\" id='" + userId + "' onclick='showAssign(this)' class=\"btn btn-success btn-xs\" ><i class=\" glyphicon glyphicon-check\"></i></button>" +
+                    "                                </td>" +
+                    "                            </tr>"
+            }
+            $("#roleTbody").append(str);
+            $("#roleThead").append("<tr>\n" +
+                "                                <th width=\"30\">#</th>\n" +
+                "                                <th>名称</th>\n" +
+                "                                <th>性别</th>\n" +
+                "                                <th>年龄</th>\n" +
+                "                                <th>年级</th>\n" +
+                "                                <th>班级</th>\n" +
+                "                                <th width=\"100\">操作</th>\n" +
+                "                            </tr>")
+
+        }
+
+
+        //初始化导航条
+        function fullPages(rolePageInfo) {
+            var total = rolePageInfo.total;
+            var pageSize = rolePageInfo.size;
+            var totalPages = total % pageSize == 0 ? total / pageSize : parseInt(total / pageSize) + 1;
+            window.totalPages = totalPages;
+            $(".Pagination").empty();
+            var clickFirst = 'changePage(1)';
+            var clickPre = 'changePage(window.pageNum-1)';
+            var clickNext = 'changePage(window.pageNum+1)';
+            var clickEnd = 'changePage(window.totalPages)';
+            if (window.pageNum == 1) {
+                var str1 = "class='disabled'";
+                clickPre = "";
+            }
+            if (window.pageNum == totalPages) {
+                var str2 = "class='disabled'";
+                clickNext = "";
+            }
+            var pageStr = "  <li><a onclick='" + clickFirst + "'>首页</a> </li>" +
+                " <li " + str1 + "><a onclick=" + clickPre + ">上一页</a></li>\n" +
+                "<li " + str2 + "><a onclick=" + clickNext + ">下一页</a></li>" +
+                // " <li><a onclick='"+changePage(+"'"+totalPages+"'")+"'>尾页</a></li>" +
+                " <li ><a onclick='" + clickEnd + "'>尾页</a></li>" +
+                "&nbsp;&nbsp;当前是第" + window.pageNum + "页，共" + totalPages + "页&nbsp; " +
+                "<a onclick='goto()'>跳转到</a><input id='page' name='page' type='number'> 页";
+            $(".Pagination").append(pageStr);
+
+        }
+
+        function changePage(number) {
+            window.pageNum = number;
+            generatorPage();
+
+        }
+
+        function goto() {
+            var pageNum = $("input[name=page]").val();
+            if (pageNum > window.totalPages||pageNum<1) {
+                layer.msg("输入页码超出范围，请重新输入！！");
+                return;
+            }
+            window.pageNum = pageNum;
+            generatorPage();
+        }
+
+        function showAssign(clbum) {
+            var clbumId = clbum.id;
+            window.location.href = "exam/go/clbum/report/by/" + clbumId;
+
+        }
+
+
+    </script>
+</head>
+
+<body>
+
+<div th:insert="~{common :: #top}"></div>
+
+<div class="container-fluid">
+    <div class="row">
+        <div th:replace="~{common :: #middle}"></div>
+        <div class="col-sm-9 col-sm-offset-3 col-md-10 col-md-offset-2 main">
+            <div class="panel panel-default">
+                <div class="panel-heading">
+                    <h3 class="panel-title"><i class="glyphicon glyphicon-th"></i> 成绩管理</h3>
+                </div>
+                <div class="panel-body">
+                    <form class="form-inline" role="form" style="float:left;">
+                        <div class="form-group has-feedback">
+                            <div class="input-group">
+                                <div class="input-group">
+                                    <div class="input-group-addon">查询条件</div>&nbsp;&nbsp;
+                                    年级： <select name="gradeId">
+                                    <option value="0">请选择年级</option>
+                                    <option th:each="grade : ${grades}" th:value="${grade.gradeId}">
+                                        [[${grade.gradeType}]]
+                                    </option>
+                                </select>&nbsp;&nbsp;
+                                    班级：<input type="text" placeholder="请输入班级" name="clbumName">&nbsp;
+                                    姓名：<input type="text" placeholder="请输入姓名" name="userName">&nbsp;&nbsp;&nbsp;
+                                </div>
+                            </div>
+                        </div>
+                        <button type="button" class="btn btn-warning getReportByCondition"><i
+                                class="glyphicon glyphicon-search"></i> 查询
+                        </button>
+                    </form>
+                    <!-- Button trigger modal -->
+                    <br>
+                    <hr style="clear:both;">
+                    <div class="table-responsive">
+                        <table class="table  table-bordered">
+                            <thead id="roleThead">
+
+                            </thead>
+                            <tbody id="roleTbody">
+                            </tbody>
+                            <tfoot>
+                            <tr>
+                                <td colspan="6" align="center">
+                                    <ul class="pagination">
+
+                                    </ul>
+                                </td>
+                            </tr>
+
+                            </tfoot>
+                        </table>
+
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<script type="text/javascript">
+    $(function () {
+        // $("#score").addClass("active")
+
+    });
+
+    $("tbody .btn-success").click(function () {
+        window.location.href = "assignPermission.html";
+    });
+</script>
+</body>
+</html>

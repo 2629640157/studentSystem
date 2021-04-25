@@ -1,0 +1,163 @@
+<html lang="zh-CN" xmlns:th="http://www.thymeleaf.org">
+<head>
+    <meta charset="UTF-8">
+    <meta http-equiv="X-UA-Compatible" content="IE=edge">
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+    <meta name="description" content="">
+    <meta name="author" content="">
+    <base th:href="@{/}">
+    <link rel="stylesheet" href="bootstrap/css/bootstrap.min.css">
+    <link rel="stylesheet" href="css/font-awesome.min.css">
+    <link rel="stylesheet" href="css/main.css">
+    <script src="jquery/jquery-2.1.1.min.js"></script>
+    <script src="bootstrap/js/bootstrap.min.js"></script>
+    <script src="script/docs.min.js"></script>
+    <script src="layer/layer.js"></script>
+    <script type="text/javascript">
+        $(function () {
+            // $("#stu").addClass("active");
+        });
+        $("tbody .btn-success").click(function () {
+            window.location.href = "assignRole.html";
+        });
+
+        function goto() {
+            var pageNum = $("input[name=page]").val();
+            if (pageNum > [[${totalPage}]]||pageNum<1) {
+                layer.msg("输入的页码超出范围，请重新输入！");
+                return;
+            }
+            var userName = '[[${userName}]]';
+            var clbumName = '[[${clbumName}]]';
+            window.location.href = "/user/get/all/" + pageNum + "?userName=" + userName + "&sex=" + [[${sex}]] + "&gradeId=" + [[${gradeId}]] + "&clbumName=" + clbumName;
+        }
+    </script>
+    <style>
+        .tree li {
+            list-style-type: none;
+            cursor: pointer;
+        }
+
+        table tbody tr:nth-child(odd) {
+            background: #F4F4F4;
+        }
+
+        table tbody td:nth-child(even) {
+            color: #C00;
+        }
+    </style>
+    <script>
+
+    </script>
+</head>
+
+<body>
+<div th:insert="~{common :: #top}"></div>
+
+<div class="container-fluid">
+    <div class="row">
+        <div th:insert="~{common :: #middle}"></div>
+        <div class="col-sm-9 col-sm-offset-3 col-md-10 col-md-offset-2 main">
+            <div class="panel panel-default">
+                <div class="panel-heading">
+                    <h3 class="panel-title"><i class="glyphicon glyphicon-th"></i> 学生管理</h3>
+                </div>
+                <div class="panel-body">
+                    <form class="form-inline" role="form" style="float:left;" th:action="@{/user/get/all/1}">
+                        <div class="form-group has-feedback">
+                            <div class="input-group">
+                                <div class="input-group-addon">查询条件</div>&nbsp;
+                                姓名：<input type="text" placeholder="请输入姓名" th:value="${userName}" name="userName">&nbsp;
+                                性别：
+                                <select name="sex">
+                                    <option value="2">请选择性别</option>
+                                    <option th:value="0" th:selected="${sex}==0">男</option>
+                                    <option th:value="1" th:selected="${sex}==1">女</option>
+                                </select>&nbsp;
+                                年级： <select name="gradeId">
+                                <option value="0">请选择年级</option>
+                                <option th:each="grade : ${grades}" th:selected="${gradeId}==${grade.gradeId}"
+                                        th:value="${grade.gradeId}">[[${grade.gradeType}]]
+                                </option>
+                            </select>&nbsp;
+                                班级：<input type="text" placeholder="请输入班级" th:value="${clbumName}" name="clbumName">&nbsp;
+                                &nbsp;
+                            </div>
+
+                        </div>
+
+                        <button type="submit" class="btn btn-warning submitCondition"><i
+                                class="glyphicon glyphicon-search"></i> 查询
+                        </button>
+                    </form>
+                    <br>
+                    <hr style="clear:both;">
+                    <div th:if="${#strings.isEmpty(userVos)}">
+                      <h3>目前还没有学生！！！</h3>
+                    </div>
+                    <div class="table-responsive" th:if="${not #strings.isEmpty(userVos)}">
+                        <table class="table  table-bordered">
+                            <thead>
+                            <tr>
+                                <th width="30">#</th>
+                                <th>账号</th>
+                                <th>名称</th>
+                                <th>性别</th>
+                                <th>年龄</th>
+                                <th>年级</th>
+                                <th>班级</th>
+                                <th>电话</th>
+                                <th width="100">操作</th>
+                            </tr>
+                            </thead>
+                            <tbody>
+
+                            <tr th:each="user,userStat : ${userVos}">
+                                <td th:text="${userStat.count}">1</td>
+                                <td th:text="${user.loginAccount}">Lorem</td>
+                                <td th:text="${user.userName}">ipsum</td>
+                                <td th:text="(${user.sex}==0) ? '男': ((${user.sex}==1)?'女':'') ">dolor</td>
+                                <td th:text="${user.age}">dolor</td>
+                                <td th:text="${user.clbumVO.grade.gradeType}">dolor</td>
+                                <td th:text="${user.clbumVO.clbumName}">dolor</td>
+                                <td th:text="${user.phone}">dolor</td>
+                                <td>
+                                    <a href="#" th:href="'/user/get/by/'+${user.userId}">
+                                        <button type="button" class="btn btn-primary btn-xs"><i
+                                                class=" glyphicon glyphicon-pencil"></i></button>
+                                    </a>
+                                </td>
+                            </tr>
+
+                            </tbody>
+                            <tfoot>
+                            <tr>
+                                <td colspan="9" align="center">
+                                    <ul class="pagination">
+                                        <li>
+                                            <a th:href="'/user/get/all/1?userName='+${userName}+'&sex='+${sex}+'&gradeId='+${gradeId}+'&clbumName='+${clbumName}">首页</a>
+                                        </li>
+                                        <li th:class="${pageNum}<= 1 ? 'disabled': ''">
+                                            <a th:href="${pageNum}<= 1 ? 'javascript:;':'/user/get/all/'+(${pageNum}-1)+'?userName='+${userName}+'&sex='+${sex}+'&gradeId='+${gradeId}+'&clbumName='+${clbumName}">上一页</a>
+                                        </li>
+                                        <li th:class="(${pageNum}>= ${totalPage}) ? 'disabled': ''">
+                                            <a th:href="(${pageNum}>= ${totalPage}) ? 'javascript:;':'/user/get/all/'+(${pageNum}+1)+'?userName='+${userName}+'&sex='+${sex}+'&gradeId='+${gradeId}+'&clbumName='+${clbumName}">下一页</a>
+                                        </li>
+                                        <li>
+                                            <a th:href="'/user/get/all/'+${totalPage}+'?userName='+${userName}+'&sex='+${sex}+'&gradeId='+${gradeId}+'&clbumName='+${clbumName}">尾页</a>
+                                        </li>&nbsp;&nbsp;当前是第[[${pageNum}]]页，共[[${totalPage}]]页&nbsp; <a
+                                            onclick="goto()">跳转到</a><input id="page" name="page" type="number"> 页
+                                    </ul>
+                                </td>
+                            </tr>
+
+                            </tfoot>
+                        </table>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+</body>
+</html>

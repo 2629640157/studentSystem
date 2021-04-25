@@ -1,0 +1,191 @@
+<html lang="zh-CN" xmlns:th="http://www.thymeleaf.org">
+<html lang="GB18030">
+<head>
+    <meta charset="UTF-8">
+    <meta http-equiv="X-UA-Compatible" content="IE=edge">
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+    <meta name="description" content="">
+    <meta name="author" content="">
+    <base th:href="@{/}">
+    <link rel="stylesheet" href="bootstrap/css/bootstrap.min.css">
+    <link rel="stylesheet" href="css/font-awesome.min.css">
+    <link rel="stylesheet" href="css/main.css">
+    <style>
+        .tree li {
+            list-style-type: none;
+            cursor: pointer;
+        }
+
+        .tree-closed {
+            height: 40px;
+        }
+
+        .tree-expanded {
+            height: auto;
+        }
+    </style>
+</head>
+
+<body>
+<div th:insert="~{common :: #top}"></div>
+<div class="container-fluid">
+    <div class="row">
+        <div th:insert="~{common :: #middle}"></div>
+        <div class="col-sm-9 col-sm-offset-3 col-md-10 col-md-offset-2 main">
+            <h1 class="page-header">分析报告</h1>
+
+            <div class="row placeholders">
+                <div id="main" style="width: 1000px;height:600px;"></div>
+                <div id="proportion" style="width: 1000px;height:600px;"></div>
+            </div>
+        </div>
+    </div>
+</div>
+<script src="jquery/jquery-2.1.1.min.js"></script>
+<script src="script/echarts.js"></script>
+<script src="bootstrap/js/bootstrap.min.js"></script>
+<script src="script/docs.min.js"></script>
+<script th:inline="javascript">
+    $(function () {
+        $(".list-group-item").click(function () {
+            if ($(this).find("ul")) {
+                $(this).toggleClass("tree-closed");
+                if ($(this).hasClass("tree-closed")) {
+                    $("ul", this).hide("fast");
+                } else {
+                    $("ul", this).show("fast");
+                }
+            }
+        });
+    });
+    //折线图
+    var list=[];
+    //扇形图
+    var list2=[];
+    //扇形图数据
+    var source=[];
+    var courses=[[${#arrays.toStringArray(courseNames)}]];
+    var scores=[[${#arrays.toIntegerArray(scores)}]];
+   var len= courses.length;
+    //科目
+    var classes=['课程'].push(courses);
+    for (var i = 0; i < len; i++) {
+        var scoreData=[];
+        for (var j = i; j <scores.length;  j+=len) {
+            scoreData.push(scores[j])
+        }
+        var series ={
+            name: courses[i],
+            type: 'line',
+            data: scoreData,
+            markPoint: {
+                data: [
+                    {type: 'max', name: '最大值'},
+                    {type: 'min', name: '最小值'}
+                ]
+            },
+            markLine: {
+                data: [
+                    {type: 'average', name: '平均值'}
+                ]
+            }
+        };
+        list.push(series);
+    }
+
+    var myChart = echarts.init(document.getElementById('main'));
+    var myChart1 = echarts.init(document.getElementById('proportion'));
+    var option = {
+        title: {
+            text: '成绩统计图'
+        },
+        tooltip: {
+            trigger: 'axis'
+        },
+        legend: {
+            data: [[${#arrays.toStringArray(courseNames)}]]
+        },
+        toolbox: {
+           show: true,
+            orient: 'vertical',
+            left: 'right',
+            top: 'center',
+            feature: {
+                mark: {show: true},
+                dataView: {show: true, readOnly: false},
+                magicType: {show: true, type: ['line', 'bar', 'stack']},
+                restore: {},
+                saveAsImage: {}
+            }
+        },
+        xAxis: {
+            type: 'category',
+            boundaryGap: false,
+            data: [[${#arrays.toStringArray(userNames)}]]
+        },
+        yAxis: {
+            type: 'value',
+            axisLabel: {
+                formatter: '{value} '
+            }
+        },
+        series: list
+    };
+    myChart.setOption(option);
+
+    //优秀
+    //及格
+    //不及格
+
+  var yx=[[${#arrays.toIntegerArray(yx)}]];
+  var jg=[[${#arrays.toIntegerArray(jg)}]];
+  var bjg=[[${#arrays.toIntegerArray(bjg)}]];
+  var df=[[${#arrays.toIntegerArray(df)}]];
+    for (var i = 0; i <len ; i++) {
+        var height='25%';
+        var weight=100*(i+1)/len+'%';
+        if (i>=len/2){
+            weight=100*(i+1-len/2)/len+'%';
+            height='75%';
+        }
+        var series1=  {
+            name:courses[i],
+            type: 'pie',
+            radius: 100/len+'%',
+            center: [weight, height],
+            data: [
+                {value: yx[i], name: '优秀'},
+                {value: jg[i], name: '及格'},
+                {value: bjg[i], name: '不及格'},
+                {value: df[i], name: '低分'}
+            ],
+            emphasis: {
+                itemStyle: {
+                    shadowBlur: 10,
+                    shadowOffsetX: 0,
+                    shadowColor: 'rgba(0, 0, 0, 0.5)'
+                }
+            }
+        };
+        list2.push(series1)
+    }
+
+   var option1 = {
+       title: {
+           text: '各科成绩概况',
+           left: 'center'
+       },
+       tooltip: {
+           trigger: 'item'
+       },
+       legend: {
+           orient: 'vertical',
+           left: 'right'
+       },
+       series: list2
+   };
+    myChart1.setOption(option1);
+    // $("#main").append(("<div id='t1'> xxxx</div>"))
+</script>
+</body>
+</html>

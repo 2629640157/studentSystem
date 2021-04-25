@@ -1,0 +1,155 @@
+<html lang="zh-CN" xmlns:th="http://www.thymeleaf.org">
+<head>
+    <meta charset="UTF-8">
+    <meta http-equiv="X-UA-Compatible" content="IE=edge">
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+    <meta name="description" content="">
+    <meta name="author" content="">
+    <base th:href="@{/}">
+    <link rel="stylesheet" href="bootstrap/css/bootstrap.min.css">
+    <link rel="stylesheet" href="css/font-awesome.min.css">
+    <link rel="stylesheet" href="css/main.css">
+    <link rel="stylesheet" href="css/doc.min.css">
+    <style>
+        .tree li {
+            list-style-type: none;
+            cursor: pointer;
+        }
+    </style>
+</head>
+
+<body>
+
+<div th:insert="~{common :: #top}"></div>
+
+<div class="container-fluid">
+    <div class="row">
+        <div th:insert="~{common :: #middle}"></div>
+        <div class="col-sm-9 col-sm-offset-3 col-md-10 col-md-offset-2 main">
+            <ol class="breadcrumb">
+                <li><a href="#">首页</a></li>
+                <li><a href="#">学生管理</a></li>
+                <li class="active">详细信息</li>
+            </ol>
+            <div class="panel panel-default">
+                <div class="panel-heading">表单数据
+                    <div style="float:right;cursor:pointer;" data-toggle="modal" data-target="#myModal"><i
+                            class="glyphicon glyphicon-question-sign"></i></div>
+                </div>
+                <div class="panel-body">
+                    <div class="form-group">
+                        <table width="50%" height="450" border="1" align="center" cellpadding="0" cellspacing="1"
+                               bgcolor="#bdc7d3"
+                               class="text_lb">
+                            <tr>
+                                <td align="center" bgcolor="#FFFFFF" width="10%"><b>员工编号：</b></td>
+                                <td bgcolor="#FFFFFF">[[${detailed.userId}]]</td>
+                                <td align="center" bgcolor="#FFFFFF" width="10%"><b>姓名：</b></td>
+                                <td bgcolor="#FFFFFF" th:value="${detailed.userName}">[[${detailed.userName}]]</td>
+                                <td rowspan="3" colspan="2" align="center" valign="middle" bgcolor="#FFFFFF">相片</td>
+                            </tr>
+                            <tr>
+
+                                <td align="center" bgcolor="#FFFFFF"
+                                    th:value="(${detailed.sex}!= null)?${detailed.sex}:''"><b>性别：</b></td>
+                                <td bgcolor="#FFFFFF">男</td>
+                                <td align="center" bgcolor="#FFFFFF"><b> 身份证号码： </b></td>
+                                <td bgcolor="#FFFFFF" th:value="(${detailed.card}!= null)?${detailed.card}:''">
+                                    12345678999999
+                                </td>
+
+                            </tr>
+                            <tr>
+                                <td align="center" bgcolor="#FFFFFF"><b>年龄：</b></td>
+                                <td bgcolor="#FFFFFF" th:value="(${detailed.age}!= null)?${detailed.age}:''">30</td>
+                                <td align="center" bgcolor="#FFFFFF"><b>电话：</b></td>
+                                <td bgcolor="#FFFFFF" th:value="(${detailed.phone}!= null)?${detailed.phone}:''">
+                                    1234567
+                                </td>
+
+                            </tr>
+                            <tr>
+                                <td align="center" bgcolor="#FFFFFF"><b>电子邮箱：</b></td>
+                                <td bgcolor="#FFFFFF" th:value="(${detailed.email}!= null)?${detailed.email}:''">
+                                    &nbsp;
+                                </td>
+                                <td align="center" bgcolor="#FFFFFF"><b>出生年月：</b></td>
+                                <td bgcolor="#FFFFFF">&nbsp;</td>
+                                <td align="center" bgcolor="#FFFFFF"><b>民族：</b></td>
+                                <td bgcolor="#FFFFFF" th:value="(${detailed.nation}!= null)?${detailed.nation}:''">
+                                    &nbsp;
+                                </td>
+                            </tr>
+                            <tr>
+                                <td align="center" bgcolor="#FFFFFF"><b>在校时间：</b></td>
+                                <td bgcolor="#FFFFFF">2010-06-30</td>
+                                <td align="center" bgcolor="#FFFFFF"><b>学业状态：</b></td>
+                                <td bgcolor="#FFFFFF">在校</td>
+                                <td align="center" bgcolor="#FFFFFF"><b>户籍地址：</b></td>
+                                <td bgcolor="#FFFFFF">广州市</td>
+                            </tr>
+                            <tr>
+                                <td align="center" bgcolor="#FFFFFF"><b>现住地址：</b></td>
+                                <td colspan="5" bgcolor="#FFFFFF">广州市XXX区XXX街XXX号</td>
+                            </tr>
+                            <tr>
+                                <td align="center" nowrap bgcolor="#FFFFFF"><b>家庭成员：</b></td>
+                                <td colspan="5" bgcolor="#FFFFFF">
+                                    <table width="80%" border="0" cellpadding="0" cellspacing="1" bgcolor="#bdc7d3"
+                                           class="text_lb">
+                                        <tr>
+                                            <td bgcolor="#FFFFFF">
+                                                <div align="center">关系</div>
+                                            </td>
+                                            <td bgcolor="#FFFFFF">
+                                                <div align="center">姓名</div>
+                                            </td>
+                                            <td bgcolor="#FFFFFF">
+                                                <div align="center">年龄</div>
+                                            </td>
+                                            <td bgcolor="#FFFFFF">
+                                                <div align="center">电话</div>
+                                            </td>
+                                            <td bgcolor="#FFFFFF">
+                                                <div align="center">工作单位(学校)</div>
+                                            </td>
+                                        </tr>
+                                        <tr>
+                                            <td align="center" bgcolor="#FFFFFF">父亲</td>
+                                            <td align="center" bgcolor="#FFFFFF">李四</td>
+                                            <td align="center" bgcolor="#FFFFFF">50</td>
+                                            <td align="center" bgcolor="#FFFFFF">1323245</td>
+                                            <td align="center" bgcolor="#FFFFFF">&nbsp;</td>
+                                        </tr>
+                                    </table>
+                                </td>
+                            </tr>
+                        </table>
+                    </div>
+                    <button style="margin-left: 48%" type="button" class="btn  btn-default btn-lg"
+                            onclick="history.back()">返回
+                    </button>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+<script src="jquery/jquery-2.1.1.min.js"></script>
+<script src="bootstrap/js/bootstrap.min.js"></script>
+<script src="script/docs.min.js"></script>
+<script type="text/javascript">
+    $(function () {
+        $(".list-group-item").click(function () {
+            if ($(this).find("ul")) {
+                $(this).toggleClass("tree-closed");
+                if ($(this).hasClass("tree-closed")) {
+                    $("ul", this).hide("fast");
+                } else {
+                    $("ul", this).show("fast");
+                }
+            }
+        });
+    });
+</script>
+</body>
+</html>

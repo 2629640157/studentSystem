@@ -1,0 +1,443 @@
+<html lang="zh-CN" xmlns:th="http://www.thymeleaf.org">
+<head>
+    <meta charset="UTF-8">
+    <meta http-equiv="X-UA-Compatible" content="IE=edge">
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+    <meta name="description" content="">
+    <meta name="author" content="">
+    <base th:href="@{/}">
+    <link rel="stylesheet" href="bootstrap/css/bootstrap.min.css">
+    <link rel="stylesheet" href="css/font-awesome.min.css">
+    <link rel="stylesheet" href="css/main.css">
+    <script src="jquery/jquery-2.1.1.min.js"></script>
+    <script src="bootstrap/js/bootstrap.min.js"></script>
+    <script src="script/docs.min.js"></script>
+    <script src="layer/layer.js"></script>
+    <style>
+        .tree li {
+            list-style-type: none;
+            cursor: pointer;
+        }
+
+        table tbody tr:nth-child(odd) {
+            background: #F4F4F4;
+        }
+
+        table tbody td:nth-child(even) {
+            color: #C00;
+        }
+    </style>
+
+    <script th:inline="javascript">
+        $(function () {
+            window.pageNum = 1;
+            window.clbumName = "";
+            window.gradeId = 0;
+            window.totalPages = 1;
+            generatorPage();
+            //模糊查询
+            $(".getClbumByCondition").click(function () {
+                var clbumName = $("input[name=clbumName]").val();
+                var gradeId = $("select[name=gradeId]:optional").val();
+                window.clbumName = clbumName;
+                window.gradeId = gradeId;
+                generatorPage();
+            });
+            //添加
+            $(".saveClbum").click(function () {
+                var gradeId = $("div[id=AddClbumModal] select[name=grade]:optional").val();
+                var clbumName = $("div[id=AddClbumModal] input[name=clbumName]").val();
+                var studentNum = $("div[id=AddClbumModal] input[name=studentNum]").val();
+                // $(".saveClbum").data("dismiss","modal") ;
+                $.ajax({
+                    url: "/clbum/save/one",
+                    type: "post",
+                    data: {
+                        "gradeId": gradeId,
+                        "clbumName": clbumName,
+                        "studentNum": studentNum
+                    },
+                    async: false,
+                    dataType: "json",
+                    success: function (result) {
+                        $("div[id=AddClbumModal] select[name=grade]:optional").val(0);
+                        $("div[id=AddClbumModal] input[name=clbumName]").val("");
+                        $("div[id=AddClbumModal] input[name=studentNum]").val("");
+                        if (result.operationResult == "FAILED") {
+                            layer.msg(result.operationMessage, {t: 2000, icon: 2, shift: 4});
+                            return;
+                        }
+                        generatorPage();
+                        layer.msg("添加成功！", {time: 2000, icon: 1, shift: 4});
+                    },
+                    error: function (result) {
+                        layer.msg(result.operationMessage, {t: 2000, icon: 2, shift: 4});
+                    }
+                });
+            });
+            //获取数据修改
+            $(".updateClbum").click(function () {
+                var gradeId = $("div[id=UpdateClbumModal] select[name=grade]:optional").val();
+                var clbumName = $("div[id=UpdateClbumModal] input[name=clbumName]").val();
+                var studentNum = $("div[id=UpdateClbumModal] input[name=studentNum]").val();
+                var clbumId = $("div[id=UpdateClbumModal] input[name=clbumId]").val();
+                // $(".saveClbum").data("dismiss","modal") ;
+                $.ajax({
+                    url: "/clbum/update/by/clbumId",
+                    type: "post",
+                    data: {
+                        "gradeId": gradeId,
+                        "clbumName": clbumName,
+                        "studentNum": studentNum,
+                        "clbumId": clbumId
+                    },
+                    async: false,
+                    dataType: "json",
+                    success: function (result) {
+                        if (result.operationResult == "FAILED") {
+                            layer.msg(result.operationMessage, {t: 2000, icon: 2, shift: 4});
+                            return;
+                        }
+
+                        generatorPage();
+                        layer.msg("修改成功！", {time: 2000, icon: 1, shift: 4});
+                    },
+                    error: function (result) {
+                        layer.msg(result.operationMessage, {t: 2000, icon: 2, shift: 4});
+                    }
+                });
+            })
+        });
+
+        function generatorPage() {
+            var rolePageInfo = getRoleInfoByRemote();
+            fullTable(rolePageInfo);
+
+        }
+
+        //获取数据的函数
+        function getRoleInfoByRemote() {
+            var ajaxResult = $.ajax({
+                "url": "clbum/get/all/",
+                "type": "post",
+                "data": {
+                    "pageNum": window.pageNum,
+                    "clbumName": window.clbumName,
+                    "gradeId": window.gradeId
+                },
+                "async": false, // 发送的请求是一个异步的请求
+                "dataType": "json"//指定返回数据的类型
+            });
+            var result = ajaxResult.responseJSON;
+            if (ajaxResult.status != 200) {
+                layer.msg("获取数据失败，请联系管理员！", {time: 2000, icon: 2, shift: 6});
+                return;
+            }
+            // 请求没有问题
+            // 请求状态码是200不一定就有数据，可能后台代码出现异常。
+            if (result.operationResult == "FAILED") {
+                layer.msg(result.operationMessage, {time: 2000, icon: 2, shift: 6});
+                return;
+            }
+            return result.queryData;
+        }
+
+        //填充表格函数
+        function fullTable(rolePageInfo) {
+            $("#roleTbody").empty();
+            $(".Pagination").empty();
+            //获取tbody对象
+            var str = "";
+            var pageStr = "";
+            if (rolePageInfo == undefined) {
+                return;
+            }
+            if (rolePageInfo.records.length == 0) {
+                str = "<h1 style='align-content:center'>没有相关记录，请重新查找！</h1>";
+                pageStr = "";
+            } else {
+                for (var i = 0; i < rolePageInfo.records.length; i++) {
+                    var clbum = rolePageInfo.records[i];
+                    var clbumId = clbum.clbumId;
+                    var clbumName = clbum.clbumName;
+                    var studentNum = clbum.studentNum;
+                    var grade = clbum.grade;
+                    var gradeTyep = grade.gradeType;
+                    str = str + "<tr>" +
+                        "                                <td >" + (i + 1) + "</td>" +
+                        "                                <td style='width: 24%'>" + gradeTyep + "</td>" +
+                        "                                <td style='width: 24%'>" + clbumName + "</td>" +
+                        "                                <td style='width: 24%'>" + studentNum + "</td>" +
+                        "                                <td style='width: 24%'>" +
+                        "                                    <button type=\"button\" id='" + clbumId + "' onclick='showCourse(this)' class=\"btn btn-success btn-xs\" ><i class=\" glyphicon glyphicon-check\"></i></button>" +
+                        "                                    <button type=\"button\" id='" + clbumId + "' onclick='updateClbum(this)'  class=\"btn btn-primary btn-xs editBtn\" data-toggle=\"modal\"\n" +
+                        "                            data-target=\"#UpdateClbumModal\"><i class=\" glyphicon glyphicon-pencil\"></i></button>" +
+                        "                                    <button type=\"button\" id='" + clbumId + "' onclick='deleteClbum(this)' class=\"btn btn-danger btn-xs deleteOne\"><i class=\" glyphicon glyphicon-remove\"></i></button>" +
+                        "                                </td>" +
+                        "                            </tr>"
+                }
+                //初始化导航条
+                var total = rolePageInfo.total;
+                var pageSize = rolePageInfo.size;
+                var totalPages = total % pageSize == 0 ? total / pageSize : parseInt(total / pageSize) + 1;
+                window.totalPages = totalPages;
+                var clickFirst = 'changePage(1)';
+                var clickPre = 'changePage(window.pageNum-1)';
+                var clickNext = 'changePage(window.pageNum+1)';
+                var clickEnd = 'changePage(window.totalPages)';
+                if (window.pageNum == 1) {
+                    var str1 = "class='disabled'";
+                    clickPre = "";
+                }
+                if (window.pageNum == totalPages) {
+                    var str2 = "class='disabled'";
+                    clickNext = "";
+                }
+                pageStr = "  <li><a onclick='" + clickFirst + "'>首页</a> </li>" +
+                    " <li " + str1 + "><a onclick=" + clickPre + ">上一页</a></li>\n" +
+                    "<li " + str2 + "><a onclick=" + clickNext + ">下一页</a></li>" +
+                    // " <li><a onclick='"+changePage(+"'"+totalPages+"'")+"'>尾页</a></li>" +
+                    " <li ><a onclick='" + clickEnd + "'>尾页</a></li>" +
+                    "&nbsp;&nbsp;当前是第" + window.pageNum + "页，共" + totalPages + "页&nbsp; " +
+                    "<a onclick='goto()'>跳转到</a><input id='page' name='page' type='number'> 页";
+            }
+            $("#roleTbody").append(str);
+            $(".Pagination").append(pageStr);
+        }
+
+
+        function changePage(number) {
+            window.pageNum = number;
+            generatorPage();
+
+        }
+
+        function goto() {
+            var pageNum = $("input[name=page]").val();
+            if (pageNum > window.totalPages||pageNum<1) {
+                layer.msg("输入页码超出范围，请重新输入！！");
+                return;
+            }
+            window.pageNum = pageNum;
+            generatorPage();
+        }
+
+        //删除
+        function deleteClbum(clbum) {
+            var clbumId = clbum.id;
+            $.ajax({
+                url: "/clbum/delete/by/clbumId",
+                type: "post",
+                data: {"clbumId": clbumId},
+                async: false,
+                dataType: "json",
+                success: function (result) {
+                    if (result.operationResult == "FAILED") {
+                        layer.msg(result.operationMessage, {t: 2000, icon: 2, shift: 4});
+                        return;
+                    }
+                    $("div[id=AddClbumModal] select[name=grade]:optional").val(0);
+                    $("div[id=AddClbumModal] input[name=clbumName]").val("");
+                    $("div[id=AddClbumModal] input[name=studentNum]").val("");
+                    generatorPage();
+                    layer.msg("删除成功！", {time: 2000, icon: 1, shift: 4});
+                },
+                error: function (result) {
+                    layer.msg(result.operationMessage, {t: 2000, icon: 2, shift: 4});
+                }
+            });
+        }
+
+        //修改之前回显
+        function updateClbum(clbum) {
+            var clbumId = clbum.id;
+            $.ajax({
+                url: "/clbum/get/by/clbumId",
+                type: "post",
+                data: {"clbumId": clbumId},
+                async: false,
+                dataType: "json",
+                success: function (result) {
+                    if (result.operationResult == "FAILED") {
+                        layer.msg(result.operationMessage, {t: 2000, icon: 2, shift: 4});
+                        return;
+                    }
+                    var clbum = result.queryData;
+                    $("div[id=UpdateClbumModal] select[name=grade]:optional").val(clbum.gradeId);
+                    $("div[id=UpdateClbumModal] input[name=clbumName]").val(clbum.clbumName);
+                    $("div[id=UpdateClbumModal] input[name=studentNum]").val(clbum.studentNum);
+                    //隐藏id，修改时候需要
+                    $("div[id=UpdateClbumModal] input[name=clbumId]").val(clbum.clbumId);
+                },
+                error: function (result) {
+                    layer.msg(result.operationMessage, {t: 2000, icon: 2, shift: 4});
+                }
+            });
+        }
+
+        //课程
+        function showCourse(clbum) {
+            var clbumId = clbum.id;
+            window.location.href = "/course/to/course/page/" + clbumId;
+        }
+
+    </script>
+</head>
+
+<body>
+
+<div th:insert="~{common :: #top}"></div>
+
+<div class="container-fluid">
+    <div class="row">
+        <div th:replace="~{common :: #middle}"></div>
+        <div class="col-sm-9 col-sm-offset-3 col-md-10 col-md-offset-2 main">
+            <div class="panel panel-default">
+                <div class="panel-heading">
+                    <h3 class="panel-title"><i class="glyphicon glyphicon-th"></i> 班级管理</h3>
+                </div>
+                <div class="panel-body">
+                    <form class="form-inline" role="form" style="float:left;">
+                        <div class="form-group has-feedback">
+                            <div class="input-group">
+                                <div class="input-group">
+                                    <div class="input-group-addon">查询条件</div>&nbsp;&nbsp;
+                                    年级： <select name="gradeId">
+                                    <option value="0">请选择年级</option>
+                                    <option th:each="grade : ${grades}" th:value="${grade.gradeId}">
+                                        [[${grade.gradeType}]]
+                                    </option>
+                                </select>&nbsp;&nbsp;
+                                    班级：<input type="text" placeholder="请输入班级" name="clbumName">&nbsp;
+                                    &nbsp;&nbsp;
+                                </div>
+                            </div>
+                        </div>
+                        <button type="button" class="btn btn-warning getClbumByCondition"><i
+                                class="glyphicon glyphicon-search"></i> 查询
+                        </button>
+                    </form>
+
+                    <!-- Button trigger modal -->
+                    <button type="button" class="btn btn-primary " style="float:right;" data-toggle="modal"
+                            data-target="#AddClbumModal">
+                        <i class="glyphicon glyphicon-plus "></i> 新增
+                    </button>
+                    <br>
+                    <hr style="clear:both;">
+                    <div class="table-responsive">
+                        <table class="table  table-bordered">
+                            <thead>
+                            <tr>
+                                <th width="30">#</th>
+                                <th>年级</th>
+                                <th>班级</th>
+                                <th>人数</th>
+                                <th width="100">操作</th>
+                            </tr>
+                            </thead>
+                            <tbody id="roleTbody">
+                            </tbody>
+                            <tfoot>
+                            <tr>
+                                <td colspan="6" align="center">
+                                    <ul class="pagination">
+
+                                    </ul>
+                                </td>
+                            </tr>
+
+                            </tfoot>
+                        </table>
+
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+
+<!-- 添加Modal -->
+<div class="modal fade" id="AddClbumModal" tabindex="-1" role="dialog" aria-labelledby="exampleModalLabel"
+     aria-hidden="true">
+    <div class="modal-dialog">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h3 class="modal-title" id="exampleModalLabel" align="center"><b>班级信息录入</b></h3>
+                <button type="button" class="close" data-dismiss="modal" aria-label="Close">
+                    <span aria-hidden="true">&times;</span>
+                </button>
+                <div class="form-group">
+                    <label for="exampleFormControlInput1">班级名称</label>
+                    <input type="text" name="clbumName" class="form-control" id="exampleFormControlInput1">
+                </div>
+                <div class="form-group">
+                    <label for="exampleFormControlSelect1">年纪</label>
+                    <select class="form-control" name="grade" id="exampleFormControlSelect1">
+                        <option value="0">请选择年级</option>
+                        <option th:each="grade : ${grades}" th:value="${grade.gradeId}">
+                            [[${grade.gradeType}]]
+                        </option>
+                    </select>
+                </div>
+                <div class="form-group">
+                    <label for="exampleFormControlSelect2">学生人数</label>
+                    <input type="number" name="studentNum" class="form-control" id="exampleFormControlSelect2">
+                </div>
+                <div class="modal-footer">
+                    <button type="button" class="btn btn-secondary" data-dismiss="modal">Close</button>
+                    <button type="button" class="btn btn-primary saveClbum" data-dismiss="modal">Save changes</button>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+<!-- 修改Modal -->
+<div class="modal fade" id="UpdateClbumModal" tabindex="-1" role="dialog" aria-labelledby="exampleModalLabel"
+     aria-hidden="true">
+    <div class="modal-dialog">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h3 class="modal-title" id="UpdateModalLabel" align="center"><b>班级信息录入</b></h3>
+                <button type="button" class="close" data-dismiss="modal" aria-label="Close">
+                    <span aria-hidden="true">&times;</span>
+                </button>
+                <input type="hidden" name="clbumId">
+                <div class="form-group">
+                    <label for="exampleFormControlInput1">班级名称</label>
+                    <input type="text" name="clbumName" class="form-control" id="UpdateleFormControlInput1">
+                </div>
+                <div class="form-group">
+                    <label for="UpdateFormControlSelect1">年纪</label>
+                    <select class="form-control" name="grade" id="UpdateFormControlSelect1">
+                        <option value="0">请选择年级</option>
+                        <option th:each="grade : ${grades}" th:value="${grade.gradeId}">
+                            [[${grade.gradeType}]]
+                        </option>
+                    </select>
+                </div>
+                <div class="form-group">
+                    <label for="UpdateFormControlSelect2">学生人数</label>
+                    <input type="number" name="studentNum" class="form-control" id="UpdateFormControlSelect2">
+                </div>
+                <div class="modal-footer">
+                    <button type="button" class="btn btn-secondary" data-dismiss="modal">Close</button>
+                    <button type="button" class="btn btn-primary updateClbum" data-dismiss="modal">Save changes</button>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+<script type="text/javascript">
+    $(function () {
+        // $("#class").addClass("active")
+
+    });
+
+    $("tbody .btn-success").click(function () {
+        window.location.href = "assignPermission.html";
+    });
+</script>
+</body>
+</html>

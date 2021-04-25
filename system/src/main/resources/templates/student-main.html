@@ -1,0 +1,406 @@
+<html lang="zh-CN" xmlns:th="http://www.thymeleaf.org">
+<html lang="GB18030">
+<head>
+    <meta charset="UTF-8">
+    <meta http-equiv="X-UA-Compatible" content="IE=edge">
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+    <meta name="description" content="">
+    <meta name="author" content="">
+    <base th:href="@{/}">
+    <link rel="stylesheet" href="bootstrap/css/bootstrap.min.css">
+    <link rel="stylesheet" href="css/font-awesome.min.css">
+    <link rel="stylesheet" href="css/main.css">
+    <style>
+        #footer {
+            padding: 15px 0;
+            background: #fff;
+            border-top: 1px solid #ddd;
+            text-align: center;
+        }
+
+        #topcontrol {
+            color: #fff;
+            z-index: 99;
+            width: 30px;
+            height: 30px;
+            font-size: 20px;
+            background: #222;
+            position: relative;
+            right: 14px !important;
+            bottom: 11px !important;
+            border-radius: 3px !important;
+        }
+
+        #topcontrol:after {
+            left: 8.5px;
+            content: "\f106";
+            position: absolute;
+            text-align: center;
+            font-family: FontAwesome;
+        }
+
+        #topcontrol:hover {
+            color: #fff;
+            background: #18ba9b;
+            -webkit-transition: all 0.3s ease-in-out;
+            -moz-transition: all 0.3s ease-in-out;
+            -o-transition: all 0.3s ease-in-out;
+            transition: all 0.3s ease-in-out;
+        }
+
+    </style>
+</head>
+<body>
+<div th:insert="~{common :: #top}"></div>
+<br>
+<div class="container">
+    <div class="row clearfix">
+        <div class="col-sm-3 col-md-3 column">
+            <div class="row">
+                <div class="col-md-12">
+                    <div class="thumbnail" style="border-radius: 0px;">
+                        <img src="img/services-box1.jpg" class="img-thumbnail"
+                             alt="A generic square placeholder image with a white border around it, making it resemble a photograph taken with an old instant camera">
+                        <div class="caption" style="text-align:center;">
+                            <h3 id="userNameh3">
+                               [[${session.user.userName}]]
+                            </h3>
+                            <span th:if="${#strings.isEmpty(session.user.version)}" class="label label-danger" style="cursor:pointer;"
+                                  onclick="window.location.href='/user/to/approve'">未实名认证</span>
+                            <span th:if="${!#strings.isEmpty(session.user.version)}" class="label label-success" style="cursor:pointer;"
+                                  onclick="window.location.href='/user/to/approve'">已实名认证</span>
+                        </div>
+                    </div>
+                </div>
+            </div>
+            <div class="list-group">
+                <div class="list-group-item active">
+                    个人中心<span class="badge"><i class="glyphicon glyphicon-chevron-right"></i></span>
+                </div>
+            </div>
+        </div>
+        <div class="col-sm-9 col-md-9 column">
+            <ul id="myTab" style="" class="nav nav-pills" role="tablist">
+                <li role="presentation" class="active"><a href="#home" role="tab" data-toggle="tab"
+                                                          aria-controls="home" aria-expanded="true">个人成绩</a></li>
+                <li role="presentation"><a href="#profile">个人信息</a></li>
+            </ul>
+            <div id="myTabContent" class="tab-content" style="margin-top:10px;">
+                <div role="tabpanel" class="tab-pane fade active in" id="home" aria-labelledby="home-tab">
+
+                    <ul id="myTab1" class="nav nav-tabs">
+                        <li role="presentation" class="active"><a href="#support">我的成绩</a></li>
+                        <li role="presentation"><a href="#attension">我的班级</a></li>
+                    </ul>
+                    <div id="myTab2" class="tab-content" style="margin-top:10px;">
+                        <div role="tabpanel" class="tab-pane fade active in" id="support"
+                             aria-labelledby="home-tab">
+                            <div class="container-fluid">
+                                <div class="row clearfix">
+                                    <form class="form-inline" role="form" style="float:left;">
+                                        <div class="form-group has-feedback">
+                                            <div class="input-group">
+                                                <div class="input-group-addon">查询条件</div>&nbsp;
+                                                <label for="time">考试时间：</label>
+                                                <select name="time" id="time">
+                                                    <option th:hidden="${!#strings.isEmpty(times)}" value=""></option>
+                                                    <option th:each="time : ${times}"
+                                                            th:value="${time}">[[${time}]]
+                                                    </option>
+                                                </select>&nbsp;
+                                            </div>
+                                        </div>
+                                        <button type="button" id="query" class="btn btn-warning  getReportByCondition"><i
+                                                class="glyphicon glyphicon-search"></i> 查询
+                                        </button>
+                                    </form>
+                                    <div class="col-md-12 column" style="margin-top:10px;padding:0;">
+                                        <table class="table table-bordered" style="text-align:center;" id="roleTbody">
+                                        </table>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                        <div role="tabpanel" class="tab-pane fade" id="attension" aria-labelledby="attension-tab">
+                            <div class="container-fluid">
+                                <div class="row clearfix">
+                                    <div class="col-md-12 column" style="padding:0;">
+                                        <div class="row placeholders">
+
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+
+                </div>
+                <div role="tabpanel" class="tab-pane fade" id="profile" aria-labelledby="profile-tab">
+                    <form method="post" th:action="@{user/change/info}">
+                        <input type="hidden" th:value="${detailed.userId}" name="userId">
+                        <div class="form-row">
+                            <div class="form-group col-md-6">
+                                <label for="userName"><h3>姓名</h3></label>
+                                <input type="text" name="userName" th:value="${detailed.userName}" class="form-control"
+                                       id="userName">
+                            </div>
+                            <div class="form-group col-md-3">
+                                <label for="Sex"><h3>性别</h3></label>
+                                <select id="Sex" class="form-control" name="sex" th:value="${detailed.sex}">
+                                    <option value="" th:hidden="${!#strings.isEmpty(detailed.sex)}"
+                                            th:selected="${#strings.isEmpty(detailed.sex)}"></option>
+                                    <option th:value="0" th:selected="${detailed.sex}==0">男</option>
+                                    <option th:value="1" th:selected="${detailed.sex}==1">女</option>
+                                </select>
+                            </div>
+                            <div class="form-group col-md-3">
+                                <label for="age"><h3>年龄</h3></label>
+                                <input type="text" name="age" th:value="${detailed.age}" class="form-control" id="age">
+                            </div>
+                        </div>
+                        <div class="form-row">
+                            <div class="form-group col-md-4">
+                                <label for="Grade"><h3>年级</h3></label>
+                                <select id="Grade" name="gradeId" class="form-control">
+                                    <option th:hidden="${!#strings.isEmpty(detailed.clbumVO)}" value="">
+                                        请选择年级
+                                    </option>
+                                    <option  th:each="grade : ${grades}"
+                                             th:selected="${grade.gradeId}==${gradeId}"
+                                             th:value="${grade.gradeId}">[[${grade.gradeType}]]
+                                    </option>
+                                </select>
+                            </div>
+                            <div class="form-group col-md-6">
+                                <label for="Class"><h3>班级</h3></label>
+                                <select id="Class" name="clbumId" class="form-control">
+                                    <option th:hidden="${!#strings.isEmpty(detailed.clbumVO)}" value="">
+                                    </option>
+                                    <option th:if="${!#strings.isEmpty(clbums)}" th:each="clbum : ${clbums}"
+                                            th:selected="${clbum.clbumId}==${clbumId}"
+                                            th:value="${clbum.clbumId}">[[${clbum.clbumName}]]
+                                    </option>
+                                </select>
+                            </div>
+                            <div class="form-group col-md-2">
+                                <label for="inputZip"><h3>民族</h3></label>
+                                <input type="text" class="form-control" name="nation" th:value="${detailed.nation}"
+                                       id="inputZip">
+                            </div>
+                        </div>
+                        <div class="form-group">
+                            <label for="phone"><h3>电话</h3></label>
+                            <input type="text" class="form-control" name="phone" th:value="${detailed.phone}" id="phone">
+                        </div>
+                        <div class="form-group">
+                            <label for="email"><h3>电子邮箱</h3></label>
+                            <input type="email" class="form-control" id="email" th:value="${detailed.email}"
+                                   placeholder="email@example.com">
+                        </div>
+                        <button type="submit" style="margin-left: 40%;" class="btn btn-success">修改
+                        </button>
+                        <button type="button" style="margin-right: 40%;" onclick="window.location.href='/user/to/student/main'" class="btn btn-danger">
+                            取消
+                        </button>
+                    </form>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+<br>
+<br>
+<div th:insert="~{common :: #floor}"></div>
+<!-- 初始信息 -->
+<div class="modal fade" id="changeInfo" tabindex="-1" role="dialog" aria-labelledby="exampleModalLabel"
+     aria-hidden="true">
+    <div class="modal-dialog">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h3 class="modal-title" id="exampleModalLabel" align="center"><b>请完善信息</b></h3>
+                <button type="button" class="close" data-dismiss="modal" aria-label="Close">
+                    <span aria-hidden="true">&times;</span>
+                </button>
+                <div class="form-group">
+                    <label for="exampleFormControlSelect3">姓名</label>
+                    <input type="text" id="exampleFormControlSelect3" name="userName" class="form-control"
+                           placeholder="请输入真实姓名，以便管理(不修改则不输入)">
+                    <label for="exampleFormControlSelect1">请选择年级</label>
+                    <select id="exampleFormControlSelect1" name="gradeId" class="form-control">
+                        <option value="0">请选择年级</option>
+                        <option th:each="grade : ${grades}" th:value="${grade.gradeId}">[[${grade.gradeType}]]
+                        </option>
+                    </select>
+                    <label for="exampleFormControlSelect2">请选择班级</label>
+                    <select id="exampleFormControlSelect2" name="clbumId" class="form-control">
+                        <option value="0">请选择班级</option>
+                    </select>
+                </div>
+                <div class="modal-footer">
+                    <button type="button" class="btn btn-secondary" data-dismiss="modal">Close</button>
+                    <button type="button" class="btn btn-primary saveInfo" data-dismiss="modal">Save changes</button>
+                </div>
+                <input type="hidden" name="clbumId" th:value="${session.user.clbumId}">
+            </div>
+        </div>
+    </div>
+</div>
+<script src="jquery/jquery-2.1.1.min.js"></script>
+<script src="bootstrap/js/bootstrap.min.js"></script>
+<script src="script/docs.min.js"></script>
+<script src="script/back-to-top.js"></script>
+<script src="layer/layer.js"></script>
+<script type="text/javascript">
+    $('#myTab a').click(function (e) {
+        e.preventDefault()
+        $(this).tab('show')
+    })
+    $('#myTab1 a').click(function (e) {
+        e.preventDefault()
+        $(this).tab('show')
+    })
+    $(function () {
+        if ([[${#strings.isEmpty(session.user.clbumId)}]]) {
+            $("#changeInfo").modal('show');
+        }
+        window.dateStr = "";
+        window.clbumId = 0;
+        $(".getReportByCondition").click(function () {
+            if ([[${#strings.isEmpty(session.user.clbumId)}]]) {
+                $("#changeInfo").modal('show');
+            }else {
+                window.dateStr = $("select[name=time]:optional").val();
+                window.clbumId =$("input[name=clbumId]").val();
+                generatorPage();
+            }
+        });
+    });
+    //通过年级获取班级
+    $("#exampleFormControlSelect1").on("change", function () {
+        var gradeId = $(this).find('option:selected').val();
+        $.ajax({
+            url: "user/get/clbums",
+            type: "post",
+            data: {"gradeId": gradeId},
+            dataType: "json",
+            success: function (response) {
+                if (response.operationResult == "FAILED") {
+                    layer.msg(response.operationMessage, {time: 2000, icon: 2, shift: 6});
+                    return;
+                }
+                $("#exampleFormControlSelect2").empty();
+                var str = " <option value=\"0\">请选择班级</option>";
+                var clbums = response.queryData;
+                for (var i = 0; i < clbums.length; i++) {
+                    var clbum = clbums[i];
+                    var clbumId = clbum.clbumId;
+                    var clbumName = clbum.clbumName;
+                    str += "<option value=" + clbumId + ">" + clbumName + "</option>"
+                }
+                $("#exampleFormControlSelect2").append(str);
+            },
+            error: function (response) {
+                layer.msg(response.operationMessage, {time: 2000, icon: 2, shift: 6});
+
+            }
+        })
+    });
+    $(".saveInfo").click(function () {
+            var clbumId = $("select[id=exampleFormControlSelect2]").val();
+            var userName = $("input[id=exampleFormControlSelect3]").val();
+            if (userName==""){
+                userName==$("h3[id=userNameh3]").val();
+            }
+            var userId = [[${session.user.userId}]];
+            $.ajax({
+                url: "user/save/info",
+                type: "post",
+                data: {
+                    "clbumId": clbumId,
+                    "userName": userName,
+                    "userId": userId
+                },
+                dataType: "json",
+                success: function (response) {
+                    if (response.operationResult == "FAILED") {
+                        layer.msg(response.operationMessage, {time: 2000, icon: 2, shift: 6});
+                        return;
+                    }
+                    $("#exampleFormControlSelect3").empty();
+                    layer.msg("设置成功！请刷新当前页面", {time: 2000, icon: 1, shift: 1});
+                },
+                error: function (response) {
+                    layer.msg(response.operationMessage, {time: 2000, icon: 2, shift: 6});
+
+                }
+            })
+        }
+    );
+    function generatorPage() {
+        var rolePageInfo = getRoleInfoByRemote();
+        fullTable(rolePageInfo);
+    }
+
+
+    //获取数据的函数
+    function getRoleInfoByRemote() {
+        var ajaxResult = $.ajax({
+            "url": "exam/get/result/by/userId/and/time",
+            "type": "post",
+            "data": {
+                "userId": [[${session.user.userId}]],
+                "clbumId": window.clbumId,
+                "dateStr": window.dateStr
+            },
+            "async": false, // 发送的请求是一个异步的请求
+            "dataType": "json"//指定返回数据的类型
+        });
+        var result = ajaxResult.responseJSON;
+        if (ajaxResult.status != 200) {
+            layer.msg("获取数据失败，请联系管理员！", {time: 2000, icon: 2, shift: 6});
+            return;
+        }
+        // 请求没有问题
+        // 请求状态码是200不一定就有数据，可能后台代码出现异常。
+        if (result.operationResult == "FAILED") {
+            layer.msg(result.operationMessage, {time: 2000, icon: 2, shift: 6});
+            return;
+        }
+        return result.queryData;
+    }
+
+    //填充表格函数
+    function fullTable(rolePageInfo) {
+        $("#roleTbody").empty();
+        //获取tbody对象
+        var head = "<thead><tr>";
+        var body = " <tbody><tr>";
+
+        if (rolePageInfo == undefined) {
+            return;
+        }
+        //保存总分
+        var sum = 0;
+        for (var i = 0; i < rolePageInfo.length; i++) {
+            var examVO = rolePageInfo[i];
+            var courseName = examVO.course.courseName;
+            var score=examVO.score;
+            if (score==-1||score==null){
+                score="";
+            }else {
+                sum=score+sum;
+            }
+            head = head + " <th scope=\"col\">"+courseName+"</th>";
+            body =body+"<td>"+score+"</td>"
+
+        }
+        head = head + "<th>总分</th></tr></thead>";
+        body = body + " <td>"+sum+"</td></tbody></tr>";
+        var str=head+body;
+        $("#roleTbody").append(str);
+
+    }
+
+</script>
+</body>
+</html>
